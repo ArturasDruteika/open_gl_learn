@@ -28,6 +28,15 @@ target_compile_definitions(${PROJECT_NAME}
         GLAD_API_CALL_EXPORT
 )
 
+include(GNUInstallDirs)
+
+install(
+    TARGETS Glad
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
 # Optional: nice grouping in IDE
 source_group(
     TREE
