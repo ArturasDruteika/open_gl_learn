@@ -21,11 +21,11 @@ The long-term goal is to gradually move from drawing the first triangle to under
     ```
 2. Install build dependencies (Linux example):
     ```sh
-    ./scripts/setup-linux.sh
+    ./scripts/linux_setup.sh
     ```
 3. Build the project:
     ```sh
-    ./scripts/build-linux.sh
+    ./scripts/linux_build.sh
     ```
 4. Run the app (Example)
     ```sh

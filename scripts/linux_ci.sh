@@ -15,7 +15,7 @@ log()
 run_build()
 {
     log "Running build script..."
-    "${REPO_ROOT}/scripts/build-linux.sh"
+    "${REPO_ROOT}/scripts/linux_build.sh"
 }
 
 package_for_act()
