@@ -29,6 +29,12 @@ add_dependencies(${PROJECT_NAME}
     Glad
 )
 
+set_target_properties(
+    ${PROJECT_NAME}
+    PROPERTIES
+        INSTALL_RPATH "$ORIGIN/../lib"
+)
+
 install(
     TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin
