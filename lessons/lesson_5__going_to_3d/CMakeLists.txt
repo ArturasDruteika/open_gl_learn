@@ -22,7 +22,7 @@ endif()
 target_link_libraries(
     ${PROJECT_NAME}
     PRIVATE
-        Glad
+        glad
         glfw
         glm::glm
         OpenGL::GL
@@ -33,7 +33,7 @@ target_link_libraries(
 
 add_dependencies(
     ${PROJECT_NAME}
-    Glad
+    glad
 )
 
 set_target_properties(

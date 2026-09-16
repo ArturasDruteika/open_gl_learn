@@ -18,7 +18,7 @@ endif ()
 # Ensure Engine is linked
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
-        Glad
+        glad
         glfw
         OpenGL::GL
         spdlog::spdlog
@@ -26,7 +26,7 @@ target_link_libraries(${PROJECT_NAME}
 
 # Ensure Example waits for Engine to build
 add_dependencies(${PROJECT_NAME}
-    Glad
+    glad
 )
 
 set_target_properties(

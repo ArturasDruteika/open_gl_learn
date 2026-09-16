@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.24.0)
 
-project(Glad LANGUAGES C)
+project(glad LANGUAGES C)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -31,7 +31,7 @@ target_compile_definitions(${PROJECT_NAME}
 include(GNUInstallDirs)
 
 install(
-    TARGETS Glad
+    TARGETS glad
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -42,7 +42,7 @@ source_group(
     TREE
         ${CMAKE_CURRENT_SOURCE_DIR}/glad
     PREFIX
-        "Glad"
+        "glad"
     FILES
         glad/include/glad/gl.h
         glad/include/KHR/khrplatform.h
