@@ -16,7 +16,7 @@
 
 
 constexpr int OPENGL_MAJOR_VERSION = 4;
-constexpr int OPENGL_MINOR_VERSION = 4;
+constexpr int OPENGL_MINOR_VERSION = 6;
 constexpr int WINDOW_WIDTH = 800;
 constexpr int WINDOW_HEIGHT = 800;
 constexpr float BACKGROUND_COLOR[4] = { 0.1f, 0.2f, 0.3f, 1.0f };
