@@ -1,107 +1,118 @@
 {
     "version": 3,
+
     "cmakeMinimumRequired": {
         "major": 3,
-        "minor": 20,
+        "minor": 24,
         "patch": 0
     },
+
     "configurePresets": [
         {
             "name": "debug-linux-clang",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build/linux_clang_debug",
+
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",
-                "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/debug",
-                "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/build/debug",
-                "CMAKE_ARCHIVE_OUTPUT_DIRECTORY": "${sourceDir}/build/debug"
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/linux_clang_debug_install"
             },
+
             "condition": {
                 "type": "equals",
                 "lhs": "${hostSystemName}",
                 "rhs": "Linux"
             }
         },
+
         {
             "name": "release-linux-clang",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build/linux_clang_release",
+
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/linux_clang_install"
             },
+
             "condition": {
                 "type": "equals",
                 "lhs": "${hostSystemName}",
                 "rhs": "Linux"
             }
         },
+
         {
             "name": "debug-linux-gcc",
             "generator": "Unix Makefiles",
             "binaryDir": "${sourceDir}/build/linux_gcc_debug",
+
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_C_COMPILER": "gcc",
                 "CMAKE_CXX_COMPILER": "g++",
-                "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/debug",
-                "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/build/debug",
-                "CMAKE_ARCHIVE_OUTPUT_DIRECTORY": "${sourceDir}/build/debug"
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/linux_gcc_debug_install"
             },
+
             "condition": {
                 "type": "equals",
                 "lhs": "${hostSystemName}",
                 "rhs": "Linux"
             }
         },
+
         {
             "name": "release-linux-gcc",
             "generator": "Unix Makefiles",
             "binaryDir": "${sourceDir}/build/linux_gcc_release",
+
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_C_COMPILER": "gcc",
                 "CMAKE_CXX_COMPILER": "g++",
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/linux_gcc_install"
             },
+
             "condition": {
                 "type": "equals",
                 "lhs": "${hostSystemName}",
                 "rhs": "Linux"
             }
         },
+
         {
             "name": "debug-windows",
             "generator": "Visual Studio 17 2022",
             "binaryDir": "${sourceDir}/build/windows_debug",
+
             "cacheVariables": {
                 "CMAKE_CONFIGURATION_TYPES": "Debug",
                 "CMAKE_GENERATOR_PLATFORM": "x64",
-                "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build",
-                "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/build",
-                "CMAKE_ARCHIVE_OUTPUT_DIRECTORY": "${sourceDir}/build"
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/windows_debug_install"
             },
+
             "condition": {
                 "type": "equals",
                 "lhs": "${hostSystemName}",
                 "rhs": "Windows"
             }
         },
+
         {
             "name": "release-windows",
             "generator": "Visual Studio 17 2022",
             "binaryDir": "${sourceDir}/build/windows_release",
+
             "cacheVariables": {
                 "CMAKE_CONFIGURATION_TYPES": "Release",
                 "CMAKE_GENERATOR_PLATFORM": "x64",
-                "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build",
-                "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/build",
-                "CMAKE_ARCHIVE_OUTPUT_DIRECTORY": "${sourceDir}/build"
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/windows_install"
             },
+
             "condition": {
                 "type": "equals",
                 "lhs": "${hostSystemName}",
@@ -109,62 +120,38 @@
             }
         }
     ],
+
     "buildPresets": [
         {
             "name": "build-debug-linux-clang",
-            "configurePreset": "debug-linux-clang",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            }
+            "configurePreset": "debug-linux-clang"
         },
+
         {
             "name": "build-release-linux-clang",
-            "configurePreset": "release-linux-clang",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            }
+            "configurePreset": "release-linux-clang"
         },
+
         {
             "name": "build-debug-linux-gcc",
-            "configurePreset": "debug-linux-gcc",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            }
+            "configurePreset": "debug-linux-gcc"
         },
+
         {
             "name": "build-release-linux-gcc",
-            "configurePreset": "release-linux-gcc",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            }
+            "configurePreset": "release-linux-gcc"
         },
+
         {
             "name": "build-debug-windows",
             "configurePreset": "debug-windows",
-            "configuration": "Debug",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            }
+            "configuration": "Debug"
         },
+
         {
             "name": "build-release-windows",
             "configurePreset": "release-windows",
-            "configuration": "Release",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            }
+            "configuration": "Release"
         }
     ]
 }
