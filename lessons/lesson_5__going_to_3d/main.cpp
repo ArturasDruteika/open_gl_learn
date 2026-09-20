@@ -16,7 +16,7 @@
 
 
 constexpr int OPENGL_MAJOR_VERSION = 4;
-constexpr int OPENGL_MINOR_VERSION = 4;
+constexpr int OPENGL_MINOR_VERSION = 6;
 constexpr int WINDOW_WIDTH = 800;
 constexpr int WINDOW_HEIGHT = 800;
 constexpr float BACKGROUND_COLOR[4] = { 0.1f, 0.2f, 0.3f, 1.0f };
@@ -341,8 +341,8 @@ int main()
     std::string fragment_shader_source;
 
     std::filesystem::path executable_directory = std::filesystem::canonical("/proc/self/exe").parent_path();
-    std::filesystem::path vertex_shader_path = executable_directory / "shaders/vertex.glsl";
-    std::filesystem::path fragment_shader_path = executable_directory / "shaders/fragment.glsl";
+    std::filesystem::path vertex_shader_path = executable_directory / "shader_program_sources/vertex.glsl";
+    std::filesystem::path fragment_shader_path = executable_directory / "shader_program_sources/fragment.glsl";
 
     try
     {
