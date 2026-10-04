@@ -1,4 +1,4 @@
-#include "utils/file_operations/include/file_operations.hpp"
+#include "andromeda/utils/file_operations/file_operations.hpp"
 
 #include "glad/gl.h"
 #include "GLFW/glfw3.h"
@@ -169,8 +169,8 @@ int main()
 
     try
     {
-        vertex_shader_source = orion::utils::FileOperations::load_file_as_string(vertex_shader_path);
-        fragment_shader_source = orion::utils::FileOperations::load_file_as_string(fragment_shader_path);
+        vertex_shader_source = andromeda::utils::FileOperations::load_file_as_string(vertex_shader_path);
+        fragment_shader_source = andromeda::utils::FileOperations::load_file_as_string(fragment_shader_path);
     }
     catch (const std::exception& exception)
     {

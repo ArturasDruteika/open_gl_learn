@@ -42,7 +42,7 @@ endif()
 
 # Dependencies
 add_subdirectory(external)
-add_subdirectory(orion)
+add_subdirectory(andromeda)
 
 # Lessons
 add_subdirectory(lessons)

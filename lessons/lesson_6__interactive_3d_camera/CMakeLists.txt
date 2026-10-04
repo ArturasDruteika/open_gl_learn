@@ -39,7 +39,7 @@ target_link_libraries(
         spdlog::spdlog
 
     PUBLIC
-        utils
+        andromeda::utils
 )
 
 add_dependencies(
