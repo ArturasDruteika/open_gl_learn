@@ -92,6 +92,32 @@ if(NOT EXISTS "${SHADER_SOURCE_DIR}/fragment.glsl")
 endif()
 
 # ---------------------------------------------------------------------------
+# Copy resources to build directory
+#
+# build/linux_clang_release/
+# └── release/
+#     └── res/
+#         └── shader_program_sources/
+# ---------------------------------------------------------------------------
+
+add_custom_command(
+    TARGET ${PROJECT_NAME}
+    POST_BUILD
+
+    COMMAND
+        ${CMAKE_COMMAND} -E make_directory
+        "${CMAKE_ASSETS_OUTPUT_DIRECTORY}/shader_program_sources"
+
+    COMMAND
+        ${CMAKE_COMMAND} -E copy_directory
+        "${SHADER_SOURCE_DIR}"
+        "${CMAKE_ASSETS_OUTPUT_DIRECTORY}/shader_program_sources"
+
+    COMMENT
+        "Copying shader resources to res/"
+)
+
+# ---------------------------------------------------------------------------
 # Install executable
 # ---------------------------------------------------------------------------
 
@@ -127,7 +153,7 @@ install(
         "${SHADER_SOURCE_DIR}/"
 
     DESTINATION
-        "${PROJECT_NAME}/bin/shader_program_sources"
+        "${PROJECT_NAME}/res/shader_program_sources"
 
     COMPONENT runtime
 )
