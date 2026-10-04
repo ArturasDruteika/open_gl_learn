@@ -164,9 +164,8 @@ int main()
     std::string vertex_shader_source;
     std::string fragment_shader_source;
 
-    std::filesystem::path executable_directory = std::filesystem::canonical("/proc/self/exe").parent_path();
-    std::filesystem::path vertex_shader_path = executable_directory / "shaders/vertex.glsl";
-    std::filesystem::path fragment_shader_path = executable_directory / "shaders/fragment.glsl";
+    std::filesystem::path vertex_shader_path = "../res/shader_program_sources/vertex.glsl";
+    std::filesystem::path fragment_shader_path = "../res/shader_program_sources/fragment.glsl";
 
     try
     {
