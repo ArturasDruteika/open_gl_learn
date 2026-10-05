@@ -7,7 +7,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(
     ${PROJECT_NAME} 
-    main.cpp
+    include/camera_orbit.hpp
+    include/pyramid.hpp
+    include/shader_program.hpp
+    src/camera_orbit.cpp
+    src/pyramid.cpp
+    src/shader_program.cpp
+    src/main.cpp
 )
 
 # ---------------------------------------------------------------------------
@@ -45,6 +51,11 @@ target_link_libraries(
 add_dependencies(
     ${PROJECT_NAME}
     glad
+)
+
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/
 )
 
 # ---------------------------------------------------------------------------
