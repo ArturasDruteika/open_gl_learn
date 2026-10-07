@@ -6,37 +6,20 @@
 class ShaderProgram
 {
 public:
-    ShaderProgram() = default;
-
+    ShaderProgram();
     ~ShaderProgram();
 
-
-    ShaderProgram(
-        const ShaderProgram&
-    ) = delete;
-
-
-    ShaderProgram& operator=(
-        const ShaderProgram&
-    ) = delete;
-
+    ShaderProgram(const ShaderProgram&) = delete;
+    ShaderProgram& operator=(const ShaderProgram&) = delete;
 
     bool create(
         const std::string& vertex_source,
         const std::string& fragment_source
     );
 
-
     void destroy();
-
-
     void use() const;
-
-
-    int get_uniform_location(
-        const char* name
-    ) const;
-
+    int get_uniform_location(const char* name) const;
 
 private:
     static bool compile_shader(
@@ -44,7 +27,6 @@ private:
         const std::string& source
     );
 
-
 private:
-    unsigned int m_id = 0;
+    unsigned int m_id;
 };

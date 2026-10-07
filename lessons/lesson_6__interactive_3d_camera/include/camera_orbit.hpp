@@ -34,20 +34,15 @@ private:
         float pitch_delta
     );
 
-    void roll(
-        float roll_delta
-    );
+    void roll(float roll_delta);
 
 
 private:
+    bool m_is_left_mouse_down;
+    bool m_has_last_mouse_position;
+    double m_last_mouse_x;
+    double m_last_mouse_y;
+
     glm::vec3 m_base_position;
-
     glm::quat m_orbit_orientation;
-    glm::quat m_roll_orientation;
-
-    bool m_is_left_mouse_down = false;
-    bool m_has_last_mouse_position = false;
-
-    double m_last_mouse_x = 0.0;
-    double m_last_mouse_y = 0.0;
 };

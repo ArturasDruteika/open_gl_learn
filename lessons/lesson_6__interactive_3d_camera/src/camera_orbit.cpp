@@ -22,35 +22,18 @@ OrbitCamera::OrbitCamera(
     float initial_yaw,
     float initial_roll
 )
-    :
-    m_base_position(base_position)
+    : m_is_left_mouse_down{ false }
+    , m_has_last_mouse_position{ false }
+    , m_last_mouse_x{ 0.0 }
+    , m_last_mouse_y{ 0.0 }
+    , m_base_position{ base_position }
 {
-    const glm::quat pitch_orientation =
-        glm::angleAxis(
-            initial_pitch,
-            glm::vec3(1.0f, 0.0f, 0.0f)
-        );
+    m_orbit_orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 
-
-    const glm::quat yaw_orientation =
-        glm::angleAxis(
-            initial_yaw,
-            glm::vec3(0.0f, 1.0f, 0.0f)
-        );
-
-
-    m_orbit_orientation =
-        glm::normalize(
-            yaw_orientation *
-            pitch_orientation
-        );
-
-
-    m_roll_orientation =
-        glm::angleAxis(
-            initial_roll,
-            glm::vec3(0.0f, 0.0f, 1.0f)
-        );
+    // Build the initial orientation using the same semantics as normal camera
+    // rotation: yaw, then pitch, then roll.
+    orbit(initial_yaw, initial_pitch);
+    roll(initial_roll);
 }
 
 
@@ -60,16 +43,12 @@ void OrbitCamera::on_mouse_button(
 )
 {
     if (button != GLFW_MOUSE_BUTTON_LEFT)
-    {
         return;
-    }
 
 
     if (action == GLFW_PRESS)
     {
         m_is_left_mouse_down = true;
-
-        // Prevent the first mouse movement from causing a jump.
         m_has_last_mouse_position = false;
     }
     else if (action == GLFW_RELEASE)
@@ -86,10 +65,6 @@ void OrbitCamera::on_mouse_move(
     bool is_ctrl_down
 )
 {
-    // -------------------------------------------------------------------------
-    // Mouse is not being dragged
-    // -------------------------------------------------------------------------
-
     if (!m_is_left_mouse_down)
     {
         m_last_mouse_x = x;
@@ -99,11 +74,6 @@ void OrbitCamera::on_mouse_move(
 
         return;
     }
-
-
-    // -------------------------------------------------------------------------
-    // First mouse event after pressing the left mouse button
-    // -------------------------------------------------------------------------
 
     if (!m_has_last_mouse_position)
     {
@@ -115,60 +85,31 @@ void OrbitCamera::on_mouse_move(
         return;
     }
 
-
-    // -------------------------------------------------------------------------
-    // Mouse movement
-    // -------------------------------------------------------------------------
-
-    const float dx =
-        static_cast<float>(
-            x - m_last_mouse_x
-        );
-
-
-    const float dy =
-        static_cast<float>(
-            y - m_last_mouse_y
-        );
-
+    const float dx = static_cast<float>(x - m_last_mouse_x);
+    const float dy = static_cast<float>(y - m_last_mouse_y);
 
     m_last_mouse_x = x;
     m_last_mouse_y = y;
 
-
-    // -------------------------------------------------------------------------
     // CTRL + left mouse -> roll
-    // -------------------------------------------------------------------------
-
     if (is_ctrl_down)
     {
-        roll(
-            dx *
-            MOUSE_ROLL_SENSITIVITY
-        );
+        roll(dx * MOUSE_ROLL_SENSITIVITY);
 
         return;
     }
 
 
-    // -------------------------------------------------------------------------
-    // Left mouse -> orbit
-    // -------------------------------------------------------------------------
-
-    // Horizontal direction is intentionally inverted.
-    const float yaw_delta =
-        -dx *
-        MOUSE_ORBIT_Y_SENSITIVITY;
-
-
-    const float pitch_delta =
-        dy *
-        MOUSE_ORBIT_X_SENSITIVITY;
-
-
+    // Same behavior as Andromeda:
+    //
+    // mouse X -> yaw
+    // mouse Y -> pitch
+    //
+    // Do NOT undo roll here. Yaw/pitch work in the camera's current local
+    // coordinate system, so roll naturally changes the axes they operate on.
     orbit(
-        yaw_delta,
-        pitch_delta
+        dx * MOUSE_ORBIT_Y_SENSITIVITY,
+        dy * MOUSE_ORBIT_X_SENSITIVITY
     );
 }
 
@@ -181,153 +122,60 @@ void OrbitCamera::orbit(
     // -------------------------------------------------------------------------
     // Yaw
     //
-    // Rotate around world Y.
+    // Rotate around the camera's CURRENT local up axis.
     // -------------------------------------------------------------------------
-
-    const glm::quat yaw_rotation =
-        glm::angleAxis(
-            yaw_delta,
-            glm::vec3(
-                0.0f,
-                1.0f,
-                0.0f
-            )
-        );
-
-
-    m_orbit_orientation =
-        glm::normalize(
-            yaw_rotation *
-            m_orbit_orientation
-        );
+    if (yaw_delta != 0.0f)
+    {
+        const glm::vec3 up_axis = glm::normalize(m_orbit_orientation * glm::vec3(0.0f, 1.0f, 0.0f));
+        const glm::quat yaw_rotation = glm::angleAxis(-yaw_delta, up_axis);
+        m_orbit_orientation = glm::normalize(yaw_rotation * m_orbit_orientation);
+    }
 
 
     // -------------------------------------------------------------------------
     // Pitch
     //
-    // Rotate around the camera's current orbital X axis.
+    // Recalculate the local right axis AFTER yaw.
     // -------------------------------------------------------------------------
-
-    const glm::vec3 pitch_axis =
-        glm::normalize(
-            m_orbit_orientation *
-            glm::vec3(
-                1.0f,
-                0.0f,
-                0.0f
-            )
-        );
-
-
-    const glm::quat pitch_rotation =
-        glm::angleAxis(
-            pitch_delta,
-            pitch_axis
-        );
-
-
-    m_orbit_orientation =
-        glm::normalize(
-            pitch_rotation *
-            m_orbit_orientation
-        );
+    if (pitch_delta != 0.0f)
+    {
+        const glm::vec3 right_axis = glm::normalize(m_orbit_orientation * glm::vec3(1.0f, 0.0f, 0.0f));
+        const glm::quat pitch_rotation = glm::angleAxis(-pitch_delta, right_axis);
+        m_orbit_orientation = glm::normalize(pitch_rotation * m_orbit_orientation);
+    }
 }
 
 
-void OrbitCamera::roll(
-    float roll_delta
-)
+void OrbitCamera::roll(float roll_delta)
 {
-    const glm::quat roll_rotation =
-        glm::angleAxis(
-            roll_delta,
-            glm::vec3(
-                0.0f,
-                0.0f,
-                1.0f
-            )
-        );
+    if (roll_delta == 0.0f)
+        return;
 
-
-    // Roll is local to the camera.
-    m_roll_orientation =
-        glm::normalize(
-            m_roll_orientation *
-            roll_rotation
-        );
+    // Roll around the camera's CURRENT forward axis.
+    const glm::vec3 forward_axis = glm::normalize(m_orbit_orientation * glm::vec3(0.0f, 0.0f, -1.0f));
+    const glm::quat roll_rotation = glm::angleAxis(roll_delta, forward_axis);
+    m_orbit_orientation = glm::normalize(roll_rotation * m_orbit_orientation);
 }
 
 
 glm::mat4 OrbitCamera::get_view_matrix() const
 {
-    const glm::quat orbit_orientation =
-        glm::normalize(
-            m_orbit_orientation
-        );
+    const glm::quat camera_orientation = glm::normalize(m_orbit_orientation);
 
-
-    const glm::quat roll_orientation =
-        glm::normalize(
-            m_roll_orientation
-        );
-
-
-    // -------------------------------------------------------------------------
-    // Camera position
+    // The camera orbits around the origin.
     //
-    // Rotating the base position moves the camera around the origin while
-    // preserving its distance from the origin.
-    // -------------------------------------------------------------------------
+    // The initial base position determines the orbit radius/direction,
+    // and the complete camera orientation rotates that position.
+    const glm::vec3 camera_position = camera_orientation * m_base_position;
 
-    const glm::vec3 camera_position =
-        orbit_orientation *
-        m_base_position;
-
-
-    // -------------------------------------------------------------------------
-    // Camera orientation
+    // Derive the camera's actual up vector from its orientation.
     //
-    // Roll affects camera orientation without affecting orbital position.
-    // -------------------------------------------------------------------------
+    // This preserves roll, unlike glm::lookAt() with a constant world-up.
+    const glm::vec3 camera_up = glm::normalize(camera_orientation * glm::vec3(0.0f, 1.0f, 0.0f));
 
-    const glm::quat camera_orientation =
-        glm::normalize(
-            orbit_orientation *
-            roll_orientation
-        );
-
-
-    // -------------------------------------------------------------------------
-    // View rotation
-    //
-    // The view matrix is the inverse camera transformation.
-    // For a normalized quaternion, inverse == conjugate.
-    // -------------------------------------------------------------------------
-
-    const glm::quat inverse_camera_orientation =
-        glm::conjugate(
-            camera_orientation
-        );
-
-
-    const glm::mat4 view_rotation =
-        glm::toMat4(
-            inverse_camera_orientation
-        );
-
-
-    // -------------------------------------------------------------------------
-    // View translation
-    // -------------------------------------------------------------------------
-
-    const glm::mat4 view_translation =
-        glm::translate(
-            glm::mat4(1.0f),
-            -camera_position
-        );
-
-
-    return
-        view_rotation *
-        view_translation;
+    return glm::lookAt(
+        camera_position,
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        camera_up
+    );
 }
