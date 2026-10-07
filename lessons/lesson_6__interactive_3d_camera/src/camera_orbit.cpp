@@ -7,12 +7,18 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/quaternion.hpp"
 
+#include <algorithm>
+
 
 namespace
 {
     constexpr float MOUSE_ORBIT_X_SENSITIVITY = 0.005f;
     constexpr float MOUSE_ORBIT_Y_SENSITIVITY = 0.005f;
     constexpr float MOUSE_ROLL_SENSITIVITY = 0.005f;
+
+    constexpr float MOUSE_ZOOM_SENSITIVITY = 0.2f;
+    constexpr float MIN_CAMERA_DISTANCE = 0.5f;
+    constexpr float MAX_CAMERA_DISTANCE = 10.0f;
 }
 
 
@@ -26,16 +32,15 @@ OrbitCamera::OrbitCamera(
     , m_has_last_mouse_position{ false }
     , m_last_mouse_x{ 0.0 }
     , m_last_mouse_y{ 0.0 }
-    , m_base_position{ base_position }
+    , m_base_position{ glm::normalize(base_position) }
+    , m_orbit_orientation{ 1.0f, 0.0f, 0.0f, 0.0f }
+    , m_distance{ glm::length(base_position) }
 {
-    m_orbit_orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-
     // Build the initial orientation using the same semantics as normal camera
     // rotation: yaw, then pitch, then roll.
     orbit(initial_yaw, initial_pitch);
     roll(initial_roll);
 }
-
 
 void OrbitCamera::on_mouse_button(
     int button,
@@ -44,7 +49,6 @@ void OrbitCamera::on_mouse_button(
 {
     if (button != GLFW_MOUSE_BUTTON_LEFT)
         return;
-
 
     if (action == GLFW_PRESS)
     {
@@ -58,7 +62,6 @@ void OrbitCamera::on_mouse_button(
     }
 }
 
-
 void OrbitCamera::on_mouse_move(
     double x,
     double y,
@@ -69,9 +72,7 @@ void OrbitCamera::on_mouse_move(
     {
         m_last_mouse_x = x;
         m_last_mouse_y = y;
-
         m_has_last_mouse_position = true;
-
         return;
     }
 
@@ -79,9 +80,7 @@ void OrbitCamera::on_mouse_move(
     {
         m_last_mouse_x = x;
         m_last_mouse_y = y;
-
         m_has_last_mouse_position = true;
-
         return;
     }
 
@@ -95,35 +94,29 @@ void OrbitCamera::on_mouse_move(
     if (is_ctrl_down)
     {
         roll(dx * MOUSE_ROLL_SENSITIVITY);
-
         return;
     }
 
-
-    // Same behavior as Andromeda:
-    //
-    // mouse X -> yaw
-    // mouse Y -> pitch
-    //
-    // Do NOT undo roll here. Yaw/pitch work in the camera's current local
-    // coordinate system, so roll naturally changes the axes they operate on.
+    // Mouse X -> yaw
+    // Mouse Y -> pitch
     orbit(
         dx * MOUSE_ORBIT_Y_SENSITIVITY,
         dy * MOUSE_ORBIT_X_SENSITIVITY
     );
 }
 
+void OrbitCamera::on_mouse_scroll(double y_offset)
+{
+    m_distance -= static_cast<float>(y_offset) * MOUSE_ZOOM_SENSITIVITY;
+    m_distance = std::clamp(m_distance, MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE);
+}
 
 void OrbitCamera::orbit(
     float yaw_delta,
     float pitch_delta
 )
 {
-    // -------------------------------------------------------------------------
     // Yaw
-    //
-    // Rotate around the camera's CURRENT local up axis.
-    // -------------------------------------------------------------------------
     if (yaw_delta != 0.0f)
     {
         const glm::vec3 up_axis = glm::normalize(m_orbit_orientation * glm::vec3(0.0f, 1.0f, 0.0f));
@@ -131,12 +124,7 @@ void OrbitCamera::orbit(
         m_orbit_orientation = glm::normalize(yaw_rotation * m_orbit_orientation);
     }
 
-
-    // -------------------------------------------------------------------------
     // Pitch
-    //
-    // Recalculate the local right axis AFTER yaw.
-    // -------------------------------------------------------------------------
     if (pitch_delta != 0.0f)
     {
         const glm::vec3 right_axis = glm::normalize(m_orbit_orientation * glm::vec3(1.0f, 0.0f, 0.0f));
@@ -145,32 +133,21 @@ void OrbitCamera::orbit(
     }
 }
 
-
 void OrbitCamera::roll(float roll_delta)
 {
     if (roll_delta == 0.0f)
         return;
 
-    // Roll around the camera's CURRENT forward axis.
+    // Roll
     const glm::vec3 forward_axis = glm::normalize(m_orbit_orientation * glm::vec3(0.0f, 0.0f, -1.0f));
     const glm::quat roll_rotation = glm::angleAxis(roll_delta, forward_axis);
     m_orbit_orientation = glm::normalize(roll_rotation * m_orbit_orientation);
 }
 
-
 glm::mat4 OrbitCamera::get_view_matrix() const
 {
     const glm::quat camera_orientation = glm::normalize(m_orbit_orientation);
-
-    // The camera orbits around the origin.
-    //
-    // The initial base position determines the orbit radius/direction,
-    // and the complete camera orientation rotates that position.
-    const glm::vec3 camera_position = camera_orientation * m_base_position;
-
-    // Derive the camera's actual up vector from its orientation.
-    //
-    // This preserves roll, unlike glm::lookAt() with a constant world-up.
+    const glm::vec3 camera_position = camera_orientation * (m_base_position * m_distance);
     const glm::vec3 camera_up = glm::normalize(camera_orientation * glm::vec3(0.0f, 1.0f, 0.0f));
 
     return glm::lookAt(

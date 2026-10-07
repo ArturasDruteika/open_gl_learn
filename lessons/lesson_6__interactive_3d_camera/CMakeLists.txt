@@ -7,9 +7,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(
     ${PROJECT_NAME} 
+    include/application.hpp
     include/camera_orbit.hpp
     include/pyramid.hpp
     include/shader_program.hpp
+    src/application.cpp
     src/camera_orbit.cpp
     src/pyramid.cpp
     src/shader_program.cpp

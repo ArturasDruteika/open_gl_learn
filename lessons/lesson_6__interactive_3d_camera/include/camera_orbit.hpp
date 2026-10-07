@@ -25,8 +25,9 @@ public:
         bool is_ctrl_down
     );
 
-    glm::mat4 get_view_matrix() const;
+    void on_mouse_scroll(double y_offset);
 
+    glm::mat4 get_view_matrix() const;
 
 private:
     void orbit(
@@ -36,7 +37,6 @@ private:
 
     void roll(float roll_delta);
 
-
 private:
     bool m_is_left_mouse_down;
     bool m_has_last_mouse_position;
@@ -45,4 +45,5 @@ private:
 
     glm::vec3 m_base_position;
     glm::quat m_orbit_orientation;
+    float m_distance;
 };
