@@ -1,6 +1,7 @@
 #pragma once
 
 #include "camera_orbit.hpp"
+#include "camera_orbit_controller.hpp"
 #include "pyramid.hpp"
 #include "shader_program.hpp"
 #include "window.hpp"
@@ -21,27 +22,12 @@ private:
     bool initialize();
     bool create_shader();
 
+    void register_callbacks();
+
     void render_loop();
     void render();
 
     glm::mat4 create_projection_matrix() const;
-
-    void on_framebuffer_size(
-        int width,
-        int height
-    );
-
-    void on_mouse_button(
-        int button,
-        int action
-    );
-
-    void on_cursor_position(
-        double x,
-        double y
-    );
-
-    void on_mouse_scroll(double y_offset);
 
     void shutdown();
 
@@ -50,7 +36,10 @@ private:
     int m_mvp_location;
 
     Window m_window;
+
     OrbitCamera m_camera;
+    OrbitCameraController m_camera_controller;
+
     ShaderProgram m_shader;
     Pyramid m_pyramid;
 };

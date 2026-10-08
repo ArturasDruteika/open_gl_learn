@@ -44,6 +44,7 @@ Application::Application()
         glm::radians(-35.0f),
         glm::radians(90.0f)
     }
+    , m_camera_controller{ m_camera }
 {
 }
 
@@ -79,33 +80,7 @@ bool Application::initialize()
     }
 
     // Callbacks
-    m_window.set_framebuffer_size_callback(
-        [this](int width, int height)
-        {
-            on_framebuffer_size(width, height);
-        }
-    );
-
-    m_window.set_mouse_button_callback(
-        [this](int button, int action)
-        {
-            on_mouse_button(button, action);
-        }
-    );
-
-    m_window.set_cursor_position_callback(
-        [this](double x, double y)
-        {
-            on_cursor_position(x, y);
-        }
-    );
-
-    m_window.set_scroll_callback(
-        [this](double y_offset)
-        {
-            on_mouse_scroll(y_offset);
-        }
-    );
+    register_callbacks();
 
     // GLAD
     if (!gladLoadGL(glfwGetProcAddress))
@@ -146,6 +121,52 @@ bool Application::initialize()
     return true;
 }
 
+void Application::register_callbacks()
+{
+    // Framebuffer
+    m_window.set_framebuffer_size_callback(
+        [](int width, int height)
+        {
+            glViewport(0, 0, width, height);
+        }
+    );
+
+    // Mouse button
+    m_window.set_mouse_button_callback(
+        [this](int button, int action)
+        {
+            m_camera_controller.on_mouse_button(
+                button,
+                action
+            );
+        }
+    );
+
+    // Cursor position
+    m_window.set_cursor_position_callback(
+        [this](double x, double y)
+        {
+            const bool is_ctrl_down =
+                m_window.is_key_pressed(GLFW_KEY_LEFT_CONTROL) ||
+                m_window.is_key_pressed(GLFW_KEY_RIGHT_CONTROL);
+
+            m_camera_controller.on_cursor_position(
+                x,
+                y,
+                is_ctrl_down
+            );
+        }
+    );
+
+    // Mouse scroll
+    m_window.set_scroll_callback(
+        [this](double y_offset)
+        {
+            m_camera_controller.on_mouse_scroll(y_offset);
+        }
+    );
+}
+
 bool Application::create_shader()
 {
     const std::filesystem::path vertex_shader_path = "../res/shader_program_sources/vertex.glsl";
@@ -175,9 +196,13 @@ void Application::render_loop()
 {
     while (!m_window.should_close())
     {
-        render();
+        if (m_window.get_framebuffer_width() > 0 &&
+            m_window.get_framebuffer_height() > 0)
+        {
+            render();
+            m_window.swap_buffers();
+        }
 
-        m_window.swap_buffers();
         m_window.poll_events();
     }
 }
@@ -222,13 +247,9 @@ glm::mat4 Application::create_projection_matrix() const
     const int width = m_window.get_framebuffer_width();
     const int height = m_window.get_framebuffer_height();
 
-    const int safe_height = height > 0
-        ? height
-        : 1;
-
     const float aspect_ratio =
         static_cast<float>(width) /
-        static_cast<float>(safe_height);
+        static_cast<float>(height);
 
     return glm::perspective(
         glm::radians(FOV_DEGREES_Y_AXIS),
@@ -236,43 +257,6 @@ glm::mat4 Application::create_projection_matrix() const
         NEAR_PLANE,
         FAR_PLANE
     );
-}
-
-void Application::on_framebuffer_size(
-    int width,
-    int height
-)
-{
-    glViewport(0, 0, width, height);
-}
-
-void Application::on_mouse_button(
-    int button,
-    int action
-)
-{
-    m_camera.on_mouse_button(button, action);
-}
-
-void Application::on_cursor_position(
-    double x,
-    double y
-)
-{
-    const bool is_ctrl_down =
-        m_window.is_key_pressed(GLFW_KEY_LEFT_CONTROL) ||
-        m_window.is_key_pressed(GLFW_KEY_RIGHT_CONTROL);
-
-    m_camera.on_mouse_move(
-        x,
-        y,
-        is_ctrl_down
-    );
-}
-
-void Application::on_mouse_scroll(double y_offset)
-{
-    m_camera.on_mouse_scroll(y_offset);
 }
 
 void Application::shutdown()
