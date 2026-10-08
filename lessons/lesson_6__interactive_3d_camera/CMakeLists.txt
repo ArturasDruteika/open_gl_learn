@@ -11,10 +11,12 @@ add_executable(
     include/camera_orbit.hpp
     include/pyramid.hpp
     include/shader_program.hpp
+    include/window.hpp
     src/application.cpp
     src/camera_orbit.cpp
     src/pyramid.cpp
     src/shader_program.cpp
+    src/window.cpp
     src/main.cpp
 )
 

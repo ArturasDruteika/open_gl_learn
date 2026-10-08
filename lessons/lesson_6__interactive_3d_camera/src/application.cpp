@@ -18,9 +18,6 @@
 // Constants
 namespace
 {
-    constexpr int OPENGL_MAJOR_VERSION = 4;
-    constexpr int OPENGL_MINOR_VERSION = 6;
-
     constexpr int WINDOW_WIDTH = 800;
     constexpr int WINDOW_HEIGHT = 800;
 
@@ -39,18 +36,14 @@ namespace
 
 
 Application::Application()
-    : m_window{ nullptr }
-    , m_is_glfw_initialized{ false }
-    , m_is_opengl_initialized{ false }
-    , m_framebuffer_width{ WINDOW_WIDTH }
-    , m_framebuffer_height{ WINDOW_HEIGHT }
+    : m_is_opengl_initialized{ false }
+    , m_mvp_location{ -1 }
     , m_camera{
         glm::vec3(0.0f, 0.0f, 2.5f),
         glm::radians(20.0f),
         glm::radians(-35.0f),
         glm::radians(90.0f)
     }
-    , m_mvp_location{ -1 }
 {
 }
 
@@ -75,42 +68,44 @@ int Application::run()
 
 bool Application::initialize()
 {
-    // GLFW
-    if (!glfwInit())
-    {
-        spdlog::error("Failed to initialize GLFW");
-        return false;
-    }
-
-    m_is_glfw_initialized = true;
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_MAJOR_VERSION);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_MINOR_VERSION);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
     // Window
-    m_window = glfwCreateWindow(
+    if (!m_window.create(
         WINDOW_WIDTH,
         WINDOW_HEIGHT,
-        "3D Pyramid",
-        nullptr,
-        nullptr
-    );
-
-    if (!m_window)
+        "3D Pyramid"
+    ))
     {
-        spdlog::error("Failed to create GLFW window");
         return false;
     }
 
-    glfwMakeContextCurrent(m_window);
-    glfwSetWindowUserPointer(m_window, this);
-
     // Callbacks
-    glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
-    glfwSetMouseButtonCallback(m_window, mouse_button_callback);
-    glfwSetCursorPosCallback(m_window, cursor_position_callback);
-    glfwSetScrollCallback(m_window, scroll_callback);
+    m_window.set_framebuffer_size_callback(
+        [this](int width, int height)
+        {
+            on_framebuffer_size(width, height);
+        }
+    );
+
+    m_window.set_mouse_button_callback(
+        [this](int button, int action)
+        {
+            on_mouse_button(button, action);
+        }
+    );
+
+    m_window.set_cursor_position_callback(
+        [this](double x, double y)
+        {
+            on_cursor_position(x, y);
+        }
+    );
+
+    m_window.set_scroll_callback(
+        [this](double y_offset)
+        {
+            on_mouse_scroll(y_offset);
+        }
+    );
 
     // GLAD
     if (!gladLoadGL(glfwGetProcAddress))
@@ -122,17 +117,11 @@ bool Application::initialize()
     m_is_opengl_initialized = true;
 
     // Framebuffer
-    glfwGetFramebufferSize(
-        m_window,
-        &m_framebuffer_width,
-        &m_framebuffer_height
-    );
-
     glViewport(
         0,
         0,
-        m_framebuffer_width,
-        m_framebuffer_height
+        m_window.get_framebuffer_width(),
+        m_window.get_framebuffer_height()
     );
 
     // OpenGL state
@@ -184,12 +173,12 @@ bool Application::create_shader()
 
 void Application::render_loop()
 {
-    while (!glfwWindowShouldClose(m_window))
+    while (!m_window.should_close())
     {
         render();
 
-        glfwSwapBuffers(m_window);
-        glfwPollEvents();
+        m_window.swap_buffers();
+        m_window.poll_events();
     }
 }
 
@@ -230,12 +219,15 @@ void Application::render()
 
 glm::mat4 Application::create_projection_matrix() const
 {
-    const int safe_height = m_framebuffer_height > 0
-        ? m_framebuffer_height
+    const int width = m_window.get_framebuffer_width();
+    const int height = m_window.get_framebuffer_height();
+
+    const int safe_height = height > 0
+        ? height
         : 1;
 
     const float aspect_ratio =
-        static_cast<float>(m_framebuffer_width) /
+        static_cast<float>(width) /
         static_cast<float>(safe_height);
 
     return glm::perspective(
@@ -251,9 +243,6 @@ void Application::on_framebuffer_size(
     int height
 )
 {
-    m_framebuffer_width = width;
-    m_framebuffer_height = height;
-
     glViewport(0, 0, width, height);
 }
 
@@ -271,8 +260,8 @@ void Application::on_cursor_position(
 )
 {
     const bool is_ctrl_down =
-        glfwGetKey(m_window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
-        glfwGetKey(m_window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
+        m_window.is_key_pressed(GLFW_KEY_LEFT_CONTROL) ||
+        m_window.is_key_pressed(GLFW_KEY_RIGHT_CONTROL);
 
     m_camera.on_mouse_move(
         x,
@@ -284,60 +273,6 @@ void Application::on_cursor_position(
 void Application::on_mouse_scroll(double y_offset)
 {
     m_camera.on_mouse_scroll(y_offset);
-}
-
-Application* Application::get_application(GLFWwindow* window)
-{
-    return static_cast<Application*>(glfwGetWindowUserPointer(window));
-}
-
-void Application::framebuffer_size_callback(
-    GLFWwindow* window,
-    int width,
-    int height
-)
-{
-    Application* application = get_application(window);
-
-    if (application)
-        application->on_framebuffer_size(width, height);
-}
-
-void Application::mouse_button_callback(
-    GLFWwindow* window,
-    int button,
-    int action,
-    int mods
-)
-{
-    Application* application = get_application(window);
-
-    if (application)
-        application->on_mouse_button(button, action);
-}
-
-void Application::cursor_position_callback(
-    GLFWwindow* window,
-    double x,
-    double y
-)
-{
-    Application* application = get_application(window);
-
-    if (application)
-        application->on_cursor_position(x, y);
-}
-
-void Application::scroll_callback(
-    GLFWwindow* window,
-    double x_offset,
-    double y_offset
-)
-{
-    Application* application = get_application(window);
-
-    if (application)
-        application->on_mouse_scroll(y_offset);
 }
 
 void Application::shutdown()
@@ -352,16 +287,5 @@ void Application::shutdown()
     }
 
     // Window / OpenGL context
-    if (m_window)
-    {
-        glfwDestroyWindow(m_window);
-        m_window = nullptr;
-    }
-
-    // GLFW
-    if (m_is_glfw_initialized)
-    {
-        glfwTerminate();
-        m_is_glfw_initialized = false;
-    }
+    m_window.destroy();
 }

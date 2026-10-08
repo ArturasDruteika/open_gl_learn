@@ -3,8 +3,7 @@
 #include "camera_orbit.hpp"
 #include "pyramid.hpp"
 #include "shader_program.hpp"
-
-struct GLFWwindow;
+#include "window.hpp"
 
 
 class Application
@@ -44,44 +43,14 @@ private:
 
     void on_mouse_scroll(double y_offset);
 
-    static Application* get_application(GLFWwindow* window);
-
-    static void framebuffer_size_callback(
-        GLFWwindow* window,
-        int width,
-        int height
-    );
-
-    static void mouse_button_callback(
-        GLFWwindow* window,
-        int button,
-        int action,
-        int mods
-    );
-
-    static void cursor_position_callback(
-        GLFWwindow* window,
-        double x,
-        double y
-    );
-
-    static void scroll_callback(
-        GLFWwindow* window,
-        double x_offset,
-        double y_offset
-    );
-
     void shutdown();
 
 private:
-    bool m_is_glfw_initialized;
     bool m_is_opengl_initialized;
-    int m_framebuffer_width;
-    int m_framebuffer_height;
     int m_mvp_location;
 
+    Window m_window;
     OrbitCamera m_camera;
     ShaderProgram m_shader;
     Pyramid m_pyramid;
-    GLFWwindow* m_window;
 };
