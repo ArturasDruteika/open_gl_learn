@@ -158,14 +158,8 @@ void Window::framebuffer_size_callback(
 {
     Window* self_instance = get_window(window);
 
-    if (!self_instance)
-        return;
-
-    self_instance->m_framebuffer_width = width;
-    self_instance->m_framebuffer_height = height;
-
-    if (self_instance->m_framebuffer_size_callback)
-        self_instance->m_framebuffer_size_callback(width, height);
+    if (self_instance)
+        self_instance->on_framebuffer_size(width, height);
 }
 
 void Window::mouse_button_callback(
@@ -177,8 +171,8 @@ void Window::mouse_button_callback(
 {
     Window* self_instance = get_window(window);
 
-    if (self_instance && self_instance->m_mouse_button_callback)
-        self_instance->m_mouse_button_callback(button, action);
+    if (self_instance)
+        self_instance->on_mouse_button(button, action);
 }
 
 void Window::cursor_position_callback(
@@ -189,8 +183,8 @@ void Window::cursor_position_callback(
 {
     Window* self_instance = get_window(window);
 
-    if (self_instance && self_instance->m_cursor_position_callback)
-        self_instance->m_cursor_position_callback(x, y);
+    if (self_instance)
+        self_instance->on_cursor_position(x, y);
 }
 
 void Window::scroll_callback(
@@ -201,6 +195,33 @@ void Window::scroll_callback(
 {
     Window* self_instance = get_window(window);
 
-    if (self_instance && self_instance->m_scroll_callback)
-        self_instance->m_scroll_callback(y_offset);
+    if (self_instance)
+        self_instance->on_scroll(y_offset);
+}
+
+void Window::on_framebuffer_size(int width, int height)
+{
+    m_framebuffer_width = width;
+    m_framebuffer_height = height;
+
+    if (m_framebuffer_size_callback)
+        m_framebuffer_size_callback(width, height);
+}
+
+void Window::on_mouse_button(int button, int action)
+{
+    if (m_mouse_button_callback)
+        m_mouse_button_callback(button, action);
+}
+
+void Window::on_cursor_position(double x, double y)
+{
+    if (m_cursor_position_callback)
+        m_cursor_position_callback(x, y);
+}
+
+void Window::on_scroll(double y_offset)
+{
+    if (m_scroll_callback)
+        m_scroll_callback(y_offset);
 }

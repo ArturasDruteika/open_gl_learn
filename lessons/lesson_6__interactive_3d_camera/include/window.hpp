@@ -69,6 +69,11 @@ private:
         double y_offset
     );
 
+    void on_framebuffer_size(int width, int height);
+    void on_mouse_button(int button, int action);
+    void on_cursor_position(double x, double y);
+    void on_scroll(double y_offset);
+
 private:
     bool m_is_glfw_initialized;
     int m_framebuffer_width;
