@@ -10,13 +10,18 @@ add_executable(
     include/application.hpp
     include/camera_orbit_controller.hpp
     include/camera_orbit.hpp
+    include/mesh.hpp
     include/pyramid.hpp
+    include/renderer.hpp
     include/shader_program.hpp
+    include/vertex.hpp
     include/window.hpp
     src/application.cpp
     src/camera_orbit_controller.cpp
     src/camera_orbit.cpp
+    src/mesh.cpp
     src/pyramid.cpp
+    src/renderer.cpp
     src/shader_program.cpp
     src/window.cpp
     src/main.cpp
