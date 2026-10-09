@@ -1,6 +1,9 @@
 #pragma once
 
-#include "glad/gl.h"
+
+#include "vertex.hpp"
+
+#include <vector>
 
 
 class Pyramid
@@ -8,18 +11,11 @@ class Pyramid
 public:
     Pyramid();
     ~Pyramid();
-    
-    Pyramid(const Pyramid&) = delete;
-    Pyramid& operator=(const Pyramid&) = delete;
 
-    void create();
-    void destroy();
-    void draw() const;
+    const std::vector<Vertex>& get_vertices() const;
+    const std::vector<unsigned int>& get_indices() const;
 
 private:
-    unsigned int m_vao;
-    unsigned int m_vbo;
-    unsigned int m_ebo;
-
-    GLsizei m_index_count;
+    std::vector<Vertex> m_vertices;
+    std::vector<unsigned int> m_indices;
 };

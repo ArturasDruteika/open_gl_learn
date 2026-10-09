@@ -1,38 +1,8 @@
 #include "pyramid.hpp"
 
-#include "glm/glm.hpp"
-
-#include <cstddef>
-#include <vector>
-
-
-namespace
-{
-    struct Vertex
-    {
-        glm::vec3 position;
-        glm::vec4 color;
-    };
-}
-
 
 Pyramid::Pyramid()
-    : m_vao{ 0 }
-    , m_vbo{ 0 }
-    , m_ebo{ 0 }
-    , m_index_count{ 0 }
 {
-}
-
-Pyramid::~Pyramid()
-{
-    destroy();
-}
-
-void Pyramid::create()
-{
-    destroy();
-
     // Positions
     const glm::vec3 top =
     {
@@ -119,7 +89,7 @@ void Pyramid::create()
     };
 
     // Vertices
-    const std::vector<Vertex> vertices =
+    m_vertices =
     {
         // Front
         { top,         neon_blue_1 },
@@ -149,7 +119,7 @@ void Pyramid::create()
     };
 
     // Indices
-    const std::vector<unsigned int> indices =
+    m_indices =
     {
         0, 1, 2,
         3, 4, 5,
@@ -158,92 +128,16 @@ void Pyramid::create()
         12, 13, 14,
         12, 14, 15
     };
-
-    m_index_count = static_cast<GLsizei>(indices.size());
-
-    // OpenGL objects
-    glGenVertexArrays(1, &m_vao);
-    glGenBuffers(1, &m_vbo);
-    glGenBuffers(1, &m_ebo);
-    glBindVertexArray(m_vao);
-
-    // VBO
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        static_cast<GLsizeiptr>(vertices.size() * sizeof(Vertex)),
-        vertices.data(),
-        GL_STATIC_DRAW
-    );
-
-    // EBO
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-
-    glBufferData(
-        GL_ELEMENT_ARRAY_BUFFER,
-        static_cast<GLsizeiptr>(indices.size() * sizeof(unsigned int)),
-        indices.data(),
-        GL_STATIC_DRAW
-    );
-
-    // Position attribute
-    glVertexAttribPointer(
-        0,
-        3,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(Vertex),
-        reinterpret_cast<void*>(offsetof(Vertex, position))
-    );
-
-    glEnableVertexAttribArray(0);
-
-    // Color attribute
-    glVertexAttribPointer(
-        1,
-        4,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(Vertex),
-        reinterpret_cast<void*>(offsetof(Vertex, color))
-    );
-
-    glEnableVertexAttribArray(1);
-    glBindVertexArray(0);
 }
 
-void Pyramid::destroy()
+Pyramid::~Pyramid() = default;
+
+const std::vector<Vertex>& Pyramid::get_vertices() const
 {
-    if (m_ebo != 0)
-    {
-        glDeleteBuffers(1, &m_ebo);
-        m_ebo = 0;
-    }
-
-    if (m_vbo != 0)
-    {
-        glDeleteBuffers(1, &m_vbo);
-        m_vbo = 0;
-    }
-
-    if (m_vao != 0)
-    {
-        glDeleteVertexArrays(1, &m_vao);
-        m_vao = 0;
-    }
-
-    m_index_count = 0;
+    return m_vertices;
 }
 
-void Pyramid::draw() const
+const std::vector<unsigned int>& Pyramid::get_indices() const
 {
-    glBindVertexArray(m_vao);
-
-    glDrawElements(
-        GL_TRIANGLES,
-        m_index_count,
-        GL_UNSIGNED_INT,
-        nullptr
-    );
+    return m_indices;
 }
