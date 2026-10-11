@@ -2,9 +2,13 @@
 
 
 #include "camera_orbit.hpp"
-#include "mesh.hpp"
+#include "mesh_open_gl.hpp"
 #include "pyramid.hpp"
 #include "shader_program.hpp"
+
+#include <glm/glm.hpp>
+
+#include <memory>
 
 
 class Renderer
@@ -38,5 +42,6 @@ private:
 
     ShaderProgram m_shader;
     Pyramid m_pyramid;
-    Mesh m_mesh;
+
+    std::unique_ptr<MeshOpenGL> m_mesh;
 };

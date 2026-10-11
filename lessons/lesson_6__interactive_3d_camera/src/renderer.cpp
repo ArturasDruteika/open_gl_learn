@@ -44,10 +44,10 @@ bool Renderer::initialize()
     glEnable(GL_DEPTH_TEST);
 
     // Geometry
-    m_mesh.create(
-        m_pyramid.get_vertices(),
-        m_pyramid.get_indices()
-    );
+    m_mesh = std::make_unique<MeshOpenGL>(m_pyramid.get_mesh());
+
+    // Shape transformation
+    m_pyramid.set_scale(glm::vec3{ 1.4f });
 
     // Shader
     if (!create_shader())
@@ -74,9 +74,8 @@ bool Renderer::initialize()
 
 void Renderer::shutdown()
 {
-    m_mesh.destroy();
+    m_mesh.reset();
     m_shader.destroy();
-
     m_mvp_location = -1;
     m_is_initialized = false;
 }
@@ -108,20 +107,21 @@ void Renderer::render(const OrbitCamera& camera,
     const glm::mat4 view = camera.get_view_matrix();
 
     // Model
-    const glm::mat4 model = glm::scale(
-        glm::mat4(1.0f),
-        glm::vec3(1.4f, 1.4f, 1.4f)
-    );
+    const glm::mat4 model = m_pyramid.get_model_matrix();
 
     // MVP
     const glm::mat4 mvp = projection * view * model;
 
     // Shader
     m_shader.use();
-    glUniformMatrix4fv(m_mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
+
+    glUniformMatrix4fv(m_mvp_location,
+                       1,
+                       GL_FALSE,
+                       glm::value_ptr(mvp));
 
     // Geometry
-    m_mesh.draw();
+    m_mesh->draw();
 }
 
 bool Renderer::create_shader()
