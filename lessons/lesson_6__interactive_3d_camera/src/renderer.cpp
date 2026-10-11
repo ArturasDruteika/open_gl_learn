@@ -11,20 +11,13 @@
 
 #include <exception>
 #include <filesystem>
+#include <memory>
 #include <string>
 
 
-// Constants
 namespace
 {
-    constexpr float BACKGROUND_COLOR[4] =
-    {
-        0.1f,
-        0.2f,
-        0.3f,
-        1.0f
-    };
-
+    constexpr float BACKGROUND_COLOR[4] = { 0.1f, 0.2f, 0.3f, 1.0f };
     constexpr float FOV_DEGREES_Y_AXIS = 45.0f;
     constexpr float NEAR_PLANE = 0.1f;
     constexpr float FAR_PLANE = 100.0f;
@@ -69,6 +62,7 @@ bool Renderer::initialize()
     if (m_mvp_location == -1)
     {
         spdlog::error("Failed to find uniform location for u_mvp");
+
         shutdown();
         return false;
     }
@@ -92,22 +86,18 @@ void Renderer::set_viewport(int width, int height)
     glViewport(0, 0, width, height);
 }
 
-void Renderer::render(
-    const OrbitCamera& camera,
-    int width,
-    int height
-)
+void Renderer::render(const OrbitCamera& camera,
+                      int width,
+                      int height)
 {
     if (!m_is_initialized || width <= 0 || height <= 0)
         return;
 
     // Clear
-    glClearColor(
-        BACKGROUND_COLOR[0],
-        BACKGROUND_COLOR[1],
-        BACKGROUND_COLOR[2],
-        BACKGROUND_COLOR[3]
-    );
+    glClearColor(BACKGROUND_COLOR[0],
+                 BACKGROUND_COLOR[1],
+                 BACKGROUND_COLOR[2],
+                 BACKGROUND_COLOR[3]);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -153,25 +143,19 @@ bool Renderer::create_shader()
         return false;
     }
 
-    return m_shader.create(
-        vertex_shader_source,
-        fragment_shader_source
-    );
+    return m_shader.create(vertex_shader_source,
+                           fragment_shader_source);
 }
 
-glm::mat4 Renderer::create_projection_matrix(
-    int width,
-    int height
-) const
+glm::mat4 Renderer::create_projection_matrix(int width,
+                                             int height) const
 {
     const float aspect_ratio =
         static_cast<float>(width) /
         static_cast<float>(height);
 
-    return glm::perspective(
-        glm::radians(FOV_DEGREES_Y_AXIS),
-        aspect_ratio,
-        NEAR_PLANE,
-        FAR_PLANE
-    );
+    return glm::perspective(glm::radians(FOV_DEGREES_Y_AXIS),
+                            aspect_ratio,
+                            NEAR_PLANE,
+                            FAR_PLANE);
 }

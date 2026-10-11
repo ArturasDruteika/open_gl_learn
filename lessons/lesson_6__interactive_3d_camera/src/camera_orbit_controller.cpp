@@ -8,7 +8,6 @@ namespace
     constexpr float MOUSE_ORBIT_X_SENSITIVITY = 0.005f;
     constexpr float MOUSE_ORBIT_Y_SENSITIVITY = 0.005f;
     constexpr float MOUSE_ROLL_SENSITIVITY = 0.005f;
-
     constexpr float MOUSE_ZOOM_SENSITIVITY = 0.2f;
 }
 
@@ -22,10 +21,9 @@ OrbitCameraController::OrbitCameraController(OrbitCamera& camera)
 {
 }
 
-void OrbitCameraController::on_mouse_button(
-    int button,
-    int action
-)
+
+void OrbitCameraController::on_mouse_button(int button,
+                                            int action)
 {
     if (button != GLFW_MOUSE_BUTTON_LEFT)
         return;
@@ -42,11 +40,10 @@ void OrbitCameraController::on_mouse_button(
     }
 }
 
-void OrbitCameraController::on_cursor_position(
-    double x,
-    double y,
-    bool is_ctrl_down
-)
+
+void OrbitCameraController::on_cursor_position(double x,
+                                               double y,
+                                               bool is_ctrl_down)
 {
     if (!m_is_left_mouse_down)
     {
@@ -79,15 +76,12 @@ void OrbitCameraController::on_cursor_position(
 
     // Mouse X -> yaw
     // Mouse Y -> pitch
-    m_camera.orbit(
-        dx * MOUSE_ORBIT_Y_SENSITIVITY,
-        dy * MOUSE_ORBIT_X_SENSITIVITY
-    );
+    m_camera.orbit(dx * MOUSE_ORBIT_Y_SENSITIVITY,
+                   dy * MOUSE_ORBIT_X_SENSITIVITY);
 }
+
 
 void OrbitCameraController::on_mouse_scroll(double y_offset)
 {
-    m_camera.zoom(
-        -static_cast<float>(y_offset) * MOUSE_ZOOM_SENSITIVITY
-    );
+    m_camera.zoom(-static_cast<float>(y_offset) * MOUSE_ZOOM_SENSITIVITY);
 }

@@ -21,11 +21,9 @@ public:
     Window(const Window&) = delete;
     Window& operator=(const Window&) = delete;
 
-    bool create(
-        int width,
-        int height,
-        const char* title
-    );
+    bool create(int width,
+                int height,
+                const char* title);
 
     void destroy();
 
@@ -46,30 +44,22 @@ public:
 private:
     static Window* get_window(GLFWwindow* window);
 
-    static void framebuffer_size_callback(
-        GLFWwindow* window,
-        int width,
-        int height
-    );
+    static void framebuffer_size_callback(GLFWwindow* window,
+                                          int width,
+                                          int height);
 
-    static void mouse_button_callback(
-        GLFWwindow* window,
-        int button,
-        int action,
-        int mods
-    );
+    static void mouse_button_callback(GLFWwindow* window,
+                                      int button,
+                                      int action,
+                                      int mods);
 
-    static void cursor_position_callback(
-        GLFWwindow* window,
-        double x,
-        double y
-    );
+    static void cursor_position_callback(GLFWwindow* window,
+                                         double x,
+                                         double y);
 
-    static void scroll_callback(
-        GLFWwindow* window,
-        double x_offset,
-        double y_offset
-    );
+    static void scroll_callback(GLFWwindow* window,
+                                double x_offset,
+                                double y_offset);
 
     void on_framebuffer_size(int width, int height);
     void on_mouse_button(int button, int action);

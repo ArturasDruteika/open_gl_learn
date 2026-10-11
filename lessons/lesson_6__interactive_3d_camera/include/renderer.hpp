@@ -19,13 +19,18 @@ public:
     bool initialize();
     void shutdown();
 
-    void set_viewport(int width, int height);
-    void render(const OrbitCamera& camera, int width, int height);
+    void set_viewport(int width, 
+                      int height);
+
+    void render(const OrbitCamera& camera, 
+                int width, 
+                int height);
 
 private:
     bool create_shader();
 
-    glm::mat4 create_projection_matrix(int width, int height) const;
+    glm::mat4 create_projection_matrix(int width, 
+                                       int height) const;
 
 private:
     bool m_is_initialized;

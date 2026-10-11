@@ -33,6 +33,7 @@ Application::~Application()
     shutdown();
 }
 
+
 int Application::run()
 {
     if (!initialize())
@@ -47,14 +48,13 @@ int Application::run()
     return 0;
 }
 
+
 bool Application::initialize()
 {
     // Window
-    if (!m_window.create(
-        WINDOW_WIDTH,
-        WINDOW_HEIGHT,
-        "3D Pyramid"
-    ))
+    if (!m_window.create(WINDOW_WIDTH,
+                         WINDOW_HEIGHT,
+                         "3D Pyramid"))
     {
         return false;
     }
@@ -73,16 +73,15 @@ bool Application::initialize()
         return false;
 
     // Framebuffer
-    m_renderer.set_viewport(
-        m_window.get_framebuffer_width(),
-        m_window.get_framebuffer_height()
-    );
+    m_renderer.set_viewport(m_window.get_framebuffer_width(),
+                            m_window.get_framebuffer_height());
 
     // Callbacks
     register_callbacks();
 
     return true;
 }
+
 
 void Application::register_callbacks()
 {
@@ -98,10 +97,8 @@ void Application::register_callbacks()
     m_window.set_mouse_button_callback(
         [this](int button, int action)
         {
-            m_camera_controller.on_mouse_button(
-                button,
-                action
-            );
+            m_camera_controller.on_mouse_button(button,
+                                                action);
         }
     );
 
@@ -113,7 +110,9 @@ void Application::register_callbacks()
                 m_window.is_key_pressed(GLFW_KEY_LEFT_CONTROL) ||
                 m_window.is_key_pressed(GLFW_KEY_RIGHT_CONTROL);
 
-            m_camera_controller.on_cursor_position(x, y, is_ctrl_down);
+            m_camera_controller.on_cursor_position(x,
+                                                   y,
+                                                   is_ctrl_down);
         }
     );
 
@@ -126,6 +125,7 @@ void Application::register_callbacks()
     );
 }
 
+
 void Application::render_loop()
 {
     while (!m_window.should_close())
@@ -135,11 +135,9 @@ void Application::render_loop()
 
         if (width > 0 && height > 0)
         {
-            m_renderer.render(
-                m_camera,
-                width,
-                height
-            );
+            m_renderer.render(m_camera,
+                              width,
+                              height);
 
             m_window.swap_buffers();
         }
@@ -148,13 +146,13 @@ void Application::render_loop()
     }
 }
 
+
 void Application::shutdown()
 {
     // OpenGL resources must be destroyed while the OpenGL context still exists.
     if (m_is_opengl_initialized)
     {
         m_renderer.shutdown();
-
         m_is_opengl_initialized = false;
     }
 

@@ -8,17 +8,13 @@
 class OrbitCamera
 {
 public:
-    OrbitCamera(
-        const glm::vec3& base_position,
-        float initial_pitch,
-        float initial_yaw,
-        float initial_roll
-    );
+    OrbitCamera(const glm::vec3& base_position,
+                float initial_pitch,
+                float initial_yaw,
+                float initial_roll);
 
-    void orbit(
-        float yaw_delta,
-        float pitch_delta
-    );
+    void orbit(float yaw_delta,
+               float pitch_delta);
 
     void roll(float roll_delta);
     void zoom(float distance_delta);

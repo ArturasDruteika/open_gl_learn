@@ -9,16 +9,12 @@ class OrbitCameraController
 public:
     explicit OrbitCameraController(OrbitCamera& camera);
 
-    void on_mouse_button(
-        int button,
-        int action
-    );
+    void on_mouse_button(int button,
+                         int action);
 
-    void on_cursor_position(
-        double x,
-        double y,
-        bool is_ctrl_down
-    );
+    void on_cursor_position(double x,
+                            double y,
+                            bool is_ctrl_down);
 
     void on_mouse_scroll(double y_offset);
 
