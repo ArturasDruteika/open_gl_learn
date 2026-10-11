@@ -1,21 +1,26 @@
 #pragma once
 
 
-#include "vertex.hpp"
-
-#include <vector>
+#include "shape.hpp"
 
 
-class Pyramid
+class Pyramid final 
+    : public Shape
 {
 public:
-    Pyramid();
+    Pyramid(float width = 0.5f,
+            float depth = 0.5f,
+            float height = 0.6f);
+
     ~Pyramid();
 
-    const std::vector<Vertex>& get_vertices() const;
-    const std::vector<unsigned int>& get_indices() const;
+private:
+    static Mesh create_mesh(float width,
+                            float depth,
+                            float height);
 
 private:
-    std::vector<Vertex> m_vertices;
-    std::vector<unsigned int> m_indices;
+    float m_width;
+    float m_depth;
+    float m_height;
 };
