@@ -3,32 +3,22 @@
 
 #include "vertex.hpp"
 
-#include "glad/gl.h"
-
+#include <cstddef>
 #include <vector>
 
 
-class Mesh
-{
+class Mesh {
 public:
-    Mesh();
+    Mesh(std::vector<Vertex> vertices, 
+         std::vector<unsigned int> indices);
+         
     ~Mesh();
 
-    Mesh(const Mesh&) = delete;
-    Mesh& operator=(const Mesh&) = delete;
-
-    void create(
-        const std::vector<Vertex>& vertices,
-        const std::vector<unsigned int>& indices
-    );
-
-    void destroy();
-    void draw() const;
+    const std::vector<Vertex>& vertices() const noexcept;
+    const std::vector<unsigned int>& indices() const noexcept;
+    std::size_t triangle_count() const noexcept;
 
 private:
-    unsigned int m_vao;
-    unsigned int m_vbo;
-    unsigned int m_ebo;
-
-    int m_index_count;
+    std::vector<Vertex> m_vertices;
+    std::vector<unsigned int> m_indices;
 };

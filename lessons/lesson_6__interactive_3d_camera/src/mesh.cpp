@@ -1,115 +1,37 @@
 #include "mesh.hpp"
 
-#include <cstddef>
+#include <stdexcept>
+#include <utility>
 
 
-Mesh::Mesh()
-    : m_vao{ 0 }
-    , m_vbo{ 0 }
-    , m_ebo{ 0 }
-    , m_index_count{ 0 }
+Mesh::Mesh(std::vector<Vertex> vertices,
+           std::vector<unsigned int> indices)
+    : m_vertices{ std::move(vertices) }
+    , m_indices{ std::move(indices) }
 {
-}
+    if (m_indices.size() % 3 != 0)
+        throw std::invalid_argument("Mesh indices must describe triangles");
 
-Mesh::~Mesh()
-{
-    destroy();
-}
-
-void Mesh::create(
-    const std::vector<Vertex>& vertices,
-    const std::vector<unsigned int>& indices
-)
-{
-    destroy();
-
-    m_index_count = static_cast<GLsizei>(indices.size());
-
-    // OpenGL objects
-    glGenVertexArrays(1, &m_vao);
-    glGenBuffers(1, &m_vbo);
-    glGenBuffers(1, &m_ebo);
-
-    glBindVertexArray(m_vao);
-
-    // VBO
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        static_cast<GLsizeiptr>(vertices.size() * sizeof(Vertex)),
-        vertices.data(),
-        GL_STATIC_DRAW
-    );
-
-    // EBO
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-
-    glBufferData(
-        GL_ELEMENT_ARRAY_BUFFER,
-        static_cast<GLsizeiptr>(indices.size() * sizeof(unsigned int)),
-        indices.data(),
-        GL_STATIC_DRAW
-    );
-
-    // Position attribute
-    glVertexAttribPointer(
-        0,
-        3,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(Vertex),
-        reinterpret_cast<void*>(offsetof(Vertex, position))
-    );
-
-    glEnableVertexAttribArray(0);
-
-    // Color attribute
-    glVertexAttribPointer(
-        1,
-        4,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(Vertex),
-        reinterpret_cast<void*>(offsetof(Vertex, color))
-    );
-
-    glEnableVertexAttribArray(1);
-
-    glBindVertexArray(0);
-}
-
-void Mesh::destroy()
-{
-    if (m_ebo != 0)
+    for (unsigned int index : m_indices)
     {
-        glDeleteBuffers(1, &m_ebo);
-        m_ebo = 0;
+        if (index >= m_vertices.size())
+            throw std::out_of_range("Mesh index is outside vertex array");
     }
-
-    if (m_vbo != 0)
-    {
-        glDeleteBuffers(1, &m_vbo);
-        m_vbo = 0;
-    }
-
-    if (m_vao != 0)
-    {
-        glDeleteVertexArrays(1, &m_vao);
-        m_vao = 0;
-    }
-
-    m_index_count = 0;
 }
 
-void Mesh::draw() const
-{
-    glBindVertexArray(m_vao);
+Mesh::~Mesh() = default;
 
-    glDrawElements(
-        GL_TRIANGLES,
-        m_index_count,
-        GL_UNSIGNED_INT,
-        nullptr
-    );
+const std::vector<Vertex>& Mesh::vertices() const noexcept
+{
+    return m_vertices;
+}
+
+const std::vector<unsigned int>& Mesh::indices() const noexcept
+{
+    return m_indices;
+}
+
+std::size_t Mesh::triangle_count() const noexcept
+{
+    return m_indices.size() / 3;
 }
