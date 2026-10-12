@@ -5,10 +5,14 @@
 #include <vector>
 
 
-Pyramid::Pyramid(float width, float depth, float height)
-    : Shape{ create_mesh(width, depth, height) }
+Pyramid::Pyramid(float width, 
+                 float length, 
+                 float height)
+    : Shape{ create_mesh(width, 
+                         length, 
+                         height) }
     , m_width{ width }
-    , m_depth{ depth }
+    , m_length{ length }
     , m_height{ height }
 {
 }
@@ -17,14 +21,14 @@ Pyramid::~Pyramid() = default;
 
 
 Mesh Pyramid::create_mesh(float width,
-                          float depth,
+                          float length,
                           float height)
 {
-    if (!(width > 0.0f && depth > 0.0f && height > 0.0f))
+    if (!(width > 0.0f && length > 0.0f && height > 0.0f))
         throw std::invalid_argument("Pyramid dimensions must be positive");
 
     const float x = width / 2.0f;
-    const float z = depth / 2.0f;
+    const float z = length / 2.0f;
 
     const float bottom = -height / 2.0f;
     const float top_y = height / 2.0f;

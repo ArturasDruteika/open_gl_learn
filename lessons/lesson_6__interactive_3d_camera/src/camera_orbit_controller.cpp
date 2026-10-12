@@ -70,7 +70,7 @@ void OrbitCameraController::on_cursor_position(double x,
     // CTRL + left mouse -> roll
     if (is_ctrl_down)
     {
-        m_camera.roll(dx * MOUSE_ROLL_SENSITIVITY);
+        m_camera.roll(-dx * MOUSE_ROLL_SENSITIVITY);
         return;
     }
 

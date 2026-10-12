@@ -11,7 +11,6 @@
 
 #include <exception>
 #include <filesystem>
-#include <memory>
 #include <string>
 
 
@@ -43,12 +42,6 @@ bool Renderer::initialize()
     // OpenGL state
     glEnable(GL_DEPTH_TEST);
 
-    // Geometry
-    m_mesh = std::make_unique<MeshOpenGL>(m_pyramid.get_mesh());
-
-    // Shape transformation
-    m_pyramid.set_scale(glm::vec3{ 1.4f });
-
     // Shader
     if (!create_shader())
     {
@@ -74,8 +67,8 @@ bool Renderer::initialize()
 
 void Renderer::shutdown()
 {
-    m_mesh.reset();
     m_shader.destroy();
+
     m_mvp_location = -1;
     m_is_initialized = false;
 }
@@ -86,6 +79,8 @@ void Renderer::set_viewport(int width, int height)
 }
 
 void Renderer::render(const OrbitCamera& camera,
+                      const MeshOpenGL& mesh,
+                      const glm::mat4& model,
                       int width,
                       int height)
 {
@@ -106,9 +101,6 @@ void Renderer::render(const OrbitCamera& camera,
     // View
     const glm::mat4 view = camera.get_view_matrix();
 
-    // Model
-    const glm::mat4 model = m_pyramid.get_model_matrix();
-
     // MVP
     const glm::mat4 mvp = projection * view * model;
 
@@ -121,7 +113,7 @@ void Renderer::render(const OrbitCamera& camera,
                        glm::value_ptr(mvp));
 
     // Geometry
-    m_mesh->draw();
+    mesh.draw();
 }
 
 bool Renderer::create_shader()

@@ -7,6 +7,8 @@
 
 #include "spdlog/spdlog.h"
 
+#include <memory>
+
 
 // Constants
 namespace
@@ -33,7 +35,6 @@ Application::~Application()
     shutdown();
 }
 
-
 int Application::run()
 {
     if (!initialize())
@@ -47,7 +48,6 @@ int Application::run()
 
     return 0;
 }
-
 
 bool Application::initialize()
 {
@@ -72,6 +72,11 @@ bool Application::initialize()
     if (!m_renderer.initialize())
         return false;
 
+    // Pyramid
+    m_pyramid.set_scale(glm::vec3{ 1.4f });
+
+    m_pyramid_mesh = std::make_unique<MeshOpenGL>(m_pyramid.get_mesh());
+
     // Framebuffer
     m_renderer.set_viewport(m_window.get_framebuffer_width(),
                             m_window.get_framebuffer_height());
@@ -81,7 +86,6 @@ bool Application::initialize()
 
     return true;
 }
-
 
 void Application::register_callbacks()
 {
@@ -125,7 +129,6 @@ void Application::register_callbacks()
     );
 }
 
-
 void Application::render_loop()
 {
     while (!m_window.should_close())
@@ -136,6 +139,8 @@ void Application::render_loop()
         if (width > 0 && height > 0)
         {
             m_renderer.render(m_camera,
+                              *m_pyramid_mesh,
+                              m_pyramid.get_model_matrix(),
                               width,
                               height);
 
@@ -146,13 +151,14 @@ void Application::render_loop()
     }
 }
 
-
 void Application::shutdown()
 {
     // OpenGL resources must be destroyed while the OpenGL context still exists.
     if (m_is_opengl_initialized)
     {
+        m_pyramid_mesh.reset();
         m_renderer.shutdown();
+
         m_is_opengl_initialized = false;
     }
 

@@ -3,8 +3,12 @@
 
 #include "camera_orbit.hpp"
 #include "camera_orbit_controller.hpp"
+#include "mesh_open_gl.hpp"
+#include "pyramid.hpp"
 #include "renderer.hpp"
 #include "window.hpp"
+
+#include <memory>
 
 
 class Application
@@ -31,4 +35,7 @@ private:
     OrbitCamera m_camera;
     OrbitCameraController m_camera_controller;
     Renderer m_renderer;
+
+    Pyramid m_pyramid;
+    std::unique_ptr<MeshOpenGL> m_pyramid_mesh;
 };
