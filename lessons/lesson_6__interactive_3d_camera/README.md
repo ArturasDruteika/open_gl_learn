@@ -40,22 +40,69 @@ Before moving any forward I want to say that starting from this lesson, we will 
 
 From now on, we have this structure:
 
-```
-lesson_name/
-|
-|
---- include/    (contains all .hpp (header) files)
-|
-|
---- src/        (contains all .cpp (source) files)
-```
+    lesson_name/
+    |
+    |
+    --- include/    (contains all .hpp (header) files)
+    |
+    |
+    --- src/        (contains all .cpp (source) files)
 
 This way, we keep separate application (the whole lesson code) parts in different files which will make the project (lesson code) easier to read and understand.
 
 Another thing to mention, that starting from this lesson, I am not going to talk about every single piece of code section. If I did that, every single leesson's readme would take thousands of lines of explanations. The goal for each lesson moving forward is just to cover main ideas that lesson is about.
 
 
-## 0.1. Files
+## 0.1. File Tree
+
+I am excluding all the non `.hpp` and `.cpp` files.
+
+
+    lesson_6_interactive_3d_camera/
+    ├── include/
+    │   ├── application.hpp
+    │   ├── camera_orbit_controller.hpp
+    │   ├── camera_orbit.hpp
+    │   ├── mesh_open_gl.hpp
+    │   ├── mesh.hpp
+    │   ├── pyramid.hpp
+    │   ├── renderer.hpp
+    │   ├── shader_program.hpp
+    │   ├── shape.hpp
+    │   ├── vertex.hpp
+    │   └── window.hpp
+    ├── src/
+    │   ├── application.cpp
+    │   ├── camera_orbit_controller.cpp
+    │   ├── camera_orbit.cpp
+    │   ├── main.cpp
+    │   ├── mesh_open_gl.cpp
+    │   ├── mesh.cpp
+    │   ├── pyramid.cpp
+    │   ├── renderer.cpp
+    │   ├── shader_program.cpp
+    │   ├── shape.cpp
+    │   └── window.cpp
+
+I have been taught a rule that every file should contain only single class, or classes that are in the same family, so let's analize what each of the files pairs (`.hpp` and `.cpp` counterparts) are responsible for. I will list files by how easy it is to understand them.
+
+- `vertex`: contains all the basic and necessary information that describes a single vertex, i.e. it's position and it's color. Do not forget that there could be way more attributes that a vertex could like normals, tangents, texture coordinates and etc, but for this lesson, we are only going to use position and color.
+- `mesh`: this is one of those fundamental concepts that needs to be understood. Mesh represents object's geometry using vertices and indices which define how an object's surface is constructed from triangles.
+- `shape`: contains basic properties that all possible shapes must contain in order to exist. It also contains a mesh member (this is one of those design things you have to think about before moving forward, because mesh does not necesseraly need to be a part of a `Shape` class). In this lesson those features are:
+    
+    - position
+    - rotation
+    - scale
+
+- `pyramid`: contains a mathematical definition that defines a geometric pyramid.
+- `mesh_open_gl`: contains OpenGL specific attrbutes used to render a mesh.
+- `camera_orbit`: contains a mathematical definition and rotation rules of a camera object. The idea is that this class expects rotation degrees input and it ouputs a view matrix.
+- `camera_orbit_controller`: the entire goal of this class is to convert user input (according to rules) into camera rotation degrees on all 3 axes.
+- `shader_program`: contains a class that loads shaders source code and compiles it into a usable shader program.
+- `application`: contains a top level class that initializes and manages the lifetime of the application with all of the necessary resources like pyramid, renderer, window. It also sets up all the callbacks that are needed for camera control.
+- `window`: this class contains the functionality needed to initialize and manage GLFW window. Entire lifetime of GLFW window happens in this class. This class also processes 
+
+
 
 
 
