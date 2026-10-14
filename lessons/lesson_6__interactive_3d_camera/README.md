@@ -148,3 +148,86 @@ So to repeat, for this lesson we will need these events:
 
 ### 1.1.2. Input Reading Using GLFW
 
+```C++
+// window.hpp
+
+// Define readable callback type aliases
+using FramebufferSizeCallback = std::function<void(int, int)>;
+using MouseButtonCallback = std::function<void(int, int)>;
+using CursorPositionCallback = std::function<void(double, double)>;
+using ScrollCallback = std::function<void(double)>;
+
+...
+
+// Store callbacks as member variables
+FramebufferSizeCallback m_framebuffer_size_callback;
+MouseButtonCallback m_mouse_button_callback;
+CursorPositionCallback m_cursor_position_callback;
+ScrollCallback m_scroll_callback;
+
+// Pointer to the GLFW window object
+GLFWwindow* m_window;
+
+// -----------------------------------------------------------------
+
+// window.cpp
+
+// Register GLFW window callables
+glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
+glfwSetMouseButtonCallback(m_window, mouse_button_callback);
+glfwSetCursorPosCallback(m_window, cursor_position_callback);
+glfwSetScrollCallback(m_window, scroll_callback);
+```
+
+This is how we register window events using GLFW API. Let's analyze block by block to understand the full picture here.
+
+
+#### Defining Readable Callback Aliases
+
+```C++
+using FramebufferSizeCallback = std::function<void(int, int)>;
+using MouseButtonCallback = std::function<void(int, int)>;
+using CursorPositionCallback = std::function<void(double, double)>;
+using ScrollCallback = std::function<void(double)>;
+```
+
+`using` in C++ creates a type aliases. It can help us to give vairable types a human readable names, for example:
+
+```C++
+unsigned int player_health;
+```
+
+can be changed to:
+
+```C++
+using PlayerHealth = unsigned int;
+PlayerHealth player_health;
+```
+
+In this example, it might give only a tiny benefit for a human who is going to read it, but the help of `using` becomes really handy when dealing with functions. For example, like in our code. 
+
+Just look, what is easier to read between these 2 examples:
+
+```C++
+// #1
+std::function<void(int, int)> = m_framebuffer_size_callback;
+
+// #2
+using FramebufferSizeCallback = std::function<void(int, int)>;
+...
+FramebufferSizeCallback m_framebuffer_size_callback;
+```
+
+I mean you can argue and say "well the first example is as readable for me as the second one". That is totaly fine, but for me, it is easier to read. The point is that either way works the same.
+
+
+#### Storing Callbacks as Member Variables
+
+```C++
+FramebufferSizeCallback m_framebuffer_size_callback;
+MouseButtonCallback m_mouse_button_callback;
+CursorPositionCallback m_cursor_position_callback;
+ScrollCallback m_scroll_callback;
+```
+
+We need to make actual callables,
