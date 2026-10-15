@@ -20,11 +20,9 @@ Window::~Window()
     destroy();
 }
 
-bool Window::create(
-    int width,
-    int height,
-    const char* title
-)
+bool Window::create(int width,
+                    int height,
+                    const char* title)
 {
     if (m_window || m_is_glfw_initialized)
         return false;
@@ -150,11 +148,9 @@ Window* Window::get_window(GLFWwindow* window)
     return static_cast<Window*>(glfwGetWindowUserPointer(window));
 }
 
-void Window::framebuffer_size_callback(
-    GLFWwindow* window,
-    int width,
-    int height
-)
+void Window::framebuffer_size_callback(GLFWwindow* window,
+                                       int width,
+                                       int height)
 {
     Window* self_instance = get_window(window);
 
@@ -162,12 +158,10 @@ void Window::framebuffer_size_callback(
         self_instance->on_framebuffer_size(width, height);
 }
 
-void Window::mouse_button_callback(
-    GLFWwindow* window,
-    int button,
-    int action,
-    int mods
-)
+void Window::mouse_button_callback(GLFWwindow* window,
+                                   int button,
+                                   int action,
+                                   int mods)
 {
     Window* self_instance = get_window(window);
 
@@ -175,11 +169,9 @@ void Window::mouse_button_callback(
         self_instance->on_mouse_button(button, action);
 }
 
-void Window::cursor_position_callback(
-    GLFWwindow* window,
-    double x,
-    double y
-)
+void Window::cursor_position_callback(GLFWwindow* window,
+                                      double x,
+                                      double y)
 {
     Window* self_instance = get_window(window);
 
@@ -187,11 +179,9 @@ void Window::cursor_position_callback(
         self_instance->on_cursor_position(x, y);
 }
 
-void Window::scroll_callback(
-    GLFWwindow* window,
-    double x_offset,
-    double y_offset
-)
+void Window::scroll_callback(GLFWwindow* window,
+                             double x_offset,
+                             double y_offset)
 {
     Window* self_instance = get_window(window);
 
@@ -199,7 +189,8 @@ void Window::scroll_callback(
         self_instance->on_scroll(y_offset);
 }
 
-void Window::on_framebuffer_size(int width, int height)
+void Window::on_framebuffer_size(int width,
+                                 int height)
 {
     m_framebuffer_width = width;
     m_framebuffer_height = height;
@@ -208,13 +199,15 @@ void Window::on_framebuffer_size(int width, int height)
         m_framebuffer_size_callback(width, height);
 }
 
-void Window::on_mouse_button(int button, int action)
+void Window::on_mouse_button(int button,
+                             int action)
 {
     if (m_mouse_button_callback)
         m_mouse_button_callback(button, action);
 }
 
-void Window::on_cursor_position(double x, double y)
+void Window::on_cursor_position(double x,
+                                double y)
 {
     if (m_cursor_position_callback)
         m_cursor_position_callback(x, y);

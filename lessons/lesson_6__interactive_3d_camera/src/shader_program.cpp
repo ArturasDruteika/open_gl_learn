@@ -15,10 +15,8 @@ ShaderProgram::~ShaderProgram()
     destroy();
 }
 
-bool ShaderProgram::create(
-    const std::string& vertex_source,
-    const std::string& fragment_source
-)
+bool ShaderProgram::create(const std::string& vertex_source,
+                           const std::string& fragment_source)
 {
     destroy();
 
@@ -55,12 +53,10 @@ bool ShaderProgram::create(
     {
         char info_log[512];
 
-        glGetProgramInfoLog(
-            m_id,
-            sizeof(info_log),
-            nullptr,
-            info_log
-        );
+        glGetProgramInfoLog(m_id,
+                            sizeof(info_log),
+                            nullptr,
+                            info_log);
 
         spdlog::error("Shader program linking failed: {}", info_log);
 
@@ -78,10 +74,8 @@ bool ShaderProgram::create(
     return true;
 }
 
-bool ShaderProgram::compile_shader(
-    unsigned int shader_id,
-    const std::string& source
-)
+bool ShaderProgram::compile_shader(unsigned int shader_id,
+                                   const std::string& source)
 {
     const char* source_c_str = source.c_str();
 
@@ -95,12 +89,10 @@ bool ShaderProgram::compile_shader(
     {
         char info_log[512];
 
-        glGetShaderInfoLog(
-            shader_id,
-            sizeof(info_log),
-            nullptr,
-            info_log
-        );
+        glGetShaderInfoLog(shader_id,
+                           sizeof(info_log),
+                           nullptr,
+                           info_log);
 
         spdlog::error("Shader compilation failed: {}", info_log);
         return false;

@@ -150,20 +150,24 @@ So to repeat, for this lesson we will need these events:
 
 ```C++
 // window.hpp
+static void framebuffer_size_callback(GLFWwindow* window,
+                                      int width,
+                                      int height);
 
-// Define readable callback type aliases
-using FramebufferSizeCallback = std::function<void(int, int)>;
-using MouseButtonCallback = std::function<void(int, int)>;
-using CursorPositionCallback = std::function<void(double, double)>;
-using ScrollCallback = std::function<void(double)>;
+static void mouse_button_callback(GLFWwindow* window,
+                                  int button,
+                                  int action,
+                                  int mods);
+
+static void cursor_position_callback(GLFWwindow* window,
+                                     double x,
+                                     double y);
+
+static void scroll_callback(GLFWwindow* window,
+                            double x_offset,
+                            double y_offset);
 
 ...
-
-// Store callbacks as member variables
-FramebufferSizeCallback m_framebuffer_size_callback;
-MouseButtonCallback m_mouse_button_callback;
-CursorPositionCallback m_cursor_position_callback;
-ScrollCallback m_scroll_callback;
 
 // Pointer to the GLFW window object
 GLFWwindow* m_window;
@@ -177,12 +181,37 @@ glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
 glfwSetMouseButtonCallback(m_window, mouse_button_callback);
 glfwSetCursorPosCallback(m_window, cursor_position_callback);
 glfwSetScrollCallback(m_window, scroll_callback);
+
 ```
 
 This is how we register window events using GLFW API. Let's analyze block by block to understand the full picture here.
 
 
-#### Defining Readable Callback Aliases
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### 1.1.2.1. Function Callables
+
+First of all, we need to understand what `std::function<void(int, int)>` does. This expression basically allows to store a function (or another callable) into a variable so that it could be "called" later. 
+
+
+#### 1.1.2.2. Defining Readable Callback Aliases
 
 ```C++
 using FramebufferSizeCallback = std::function<void(int, int)>;
@@ -230,4 +259,8 @@ CursorPositionCallback m_cursor_position_callback;
 ScrollCallback m_scroll_callback;
 ```
 
-We need to make actual callables,
+Why do we need to define functions as member variables? First of all, let's understand what these lines do in general C++ terms.
+
+```
+
+```
