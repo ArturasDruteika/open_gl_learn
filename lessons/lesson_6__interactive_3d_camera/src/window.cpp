@@ -41,13 +41,11 @@ bool Window::create(int width,
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Window
-    m_window = glfwCreateWindow(
-        width,
-        height,
-        title,
-        nullptr,
-        nullptr
-    );
+    m_window = glfwCreateWindow(width,
+                                height,
+                                title,
+                                nullptr,
+                                nullptr);
 
     if (!m_window)
     {
@@ -66,11 +64,9 @@ bool Window::create(int width,
     glfwSetScrollCallback(m_window, scroll_callback);
 
     // Framebuffer
-    glfwGetFramebufferSize(
-        m_window,
-        &m_framebuffer_width,
-        &m_framebuffer_height
-    );
+    glfwGetFramebufferSize(m_window,
+                           &m_framebuffer_width,
+                           &m_framebuffer_height);
 
     return true;
 }

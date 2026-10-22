@@ -184,8 +184,56 @@ glfwSetScrollCallback(m_window, scroll_callback);
 
 ```
 
-This is how we register window events using GLFW API. Let's analyze block by block to understand the full picture here.
+This is how we register window events callbacks using GLFW API. Let's analyze block by block to understand the full picture here.
 
+In the purest form, GLFW constantly tracks events that happen on it's window. Whether it is a mouse position change, window size change or any other event. Even if we did not attach any callbacks, GLFW system still keeps tracking all events. With this functions `glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);` and others, we just tell GLFW system that "hey, any event that is a window size change, please call back the the `framebuffer_size_callback`". Analogous is the other callback registering function calls.
+
+               OPERATING SYSTEM
+                      |
+                      | Event occurs
+                      v
+               +-------------+
+               | GLFW SYSTEM |
+               |             |
+               | Processes   |
+               | the event   |
+               +-------------+
+                      |
+                      v
+             Framebuffer resized
+                      |
+                      v
+            Is callback registered?
+                      |
+                +-----+-----+
+                |           |
+               YES          NO
+                |           |
+                v           v
+         Invoke callback   No callback
+                |          invoked
+                v
+    framebuffer_size_callback()
+                |
+                v
+        Your code executes
+
+In general, this is how a callback system works. If you attach one, on the next instance of that event your own function will be invoked.
+
+
+### 1.1.3. Callback Functions
+
+As you saw earlier, to each of the window event callback set, we had to tell GLFW which specific our function should be called on which GLFW event, so now we have:
+
+```C++
+                             Calls
+window size change      -------------->     framebuffer_size_callback()
+mouse button press      -------------->     mouse_button_callback()
+cursor position change  -------------->     cursor_position_callback()
+mouse scroll            -------------->     scroll_callback()
+```
+
+First, lets understand each callback function definition.
 
 
 
