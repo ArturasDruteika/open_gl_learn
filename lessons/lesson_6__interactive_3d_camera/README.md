@@ -233,82 +233,87 @@ cursor position change  -------------->     cursor_position_callback()
 mouse scroll            -------------->     scroll_callback()
 ```
 
-First, lets understand each callback function definition.
+#### 1.1.3.1. Definitions
 
+First, lets understand each callback function definition and it's signature.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#### 1.1.2.1. Function Callables
-
-First of all, we need to understand what `std::function<void(int, int)>` does. This expression basically allows to store a function (or another callable) into a variable so that it could be "called" later. 
-
-
-#### 1.1.2.2. Defining Readable Callback Aliases
+Let's take this example:
 
 ```C++
+static void framebuffer_size_callback(GLFWwindow* window,
+                                      int width,
+                                      int height);
+```
+
+Why does it have to have these parameters? For me, the thing that I first did not understand was the reason of why was the `GLFWwindow* window` parameter needed.
+
+GLFW `window` is needed, because you have to tell GLFW onto which GLFW window will the callback be registered. Know that a single GLFW application can have multiple GLFW windows.
+
+![2 GLFW windows](assets/glfw_2_windows.png)
+
+You can setup callbacks so that different window would have different callbacks.
+
+WHy is `int width` and `int height` needed? The reason is because GLFW system callbacks our function it receives width and height values, so our function also has to have at least these 2 parameters. 
+
+It does not mean that `framebuffer_size_callback` has to have only width and height parameters, it can have as many as you want, but window, width and height (in that specific order) must be included.
+
+Analogous to `framebuffer_size_callback` parameters, our other callback functions have also parameters, that glfw callbacks those functions with.
+
+
+#### 1.1.3.2. Declaration
+
+Now that we have a callbacks attached to GLFW system, we need to understand what our declarations of those callbacks look like and why they ar ethe way they are.
+
+Let's analyze them 1 by 1:
+
+```C++
+// window.hpp definitions
 using FramebufferSizeCallback = std::function<void(int, int)>;
-using MouseButtonCallback = std::function<void(int, int)>;
-using CursorPositionCallback = std::function<void(double, double)>;
-using ScrollCallback = std::function<void(double)>;
-```
 
-`using` in C++ creates a type aliases. It can help us to give vairable types a human readable names, for example:
-
-```C++
-unsigned int player_health;
-```
-
-can be changed to:
-
-```C++
-using PlayerHealth = unsigned int;
-PlayerHealth player_health;
-```
-
-In this example, it might give only a tiny benefit for a human who is going to read it, but the help of `using` becomes really handy when dealing with functions. For example, like in our code. 
-
-Just look, what is easier to read between these 2 examples:
-
-```C++
-// #1
-std::function<void(int, int)> = m_framebuffer_size_callback;
-
-// #2
-using FramebufferSizeCallback = std::function<void(int, int)>;
 ...
+
+static void framebuffer_size_callback(GLFWwindow* window,
+                                      int width,
+                                      int height);
+
+...
+
+void on_framebuffer_size(int width, int height);
+
+...
+
+int m_framebuffer_width;
+int m_framebuffer_height;
+
 FramebufferSizeCallback m_framebuffer_size_callback;
+
+...
+
+GLFWwindow* m_window;
+
+
+// window.cpp declarations
+
+void Window::framebuffer_size_callback(GLFWwindow* window,
+                                       int width,
+                                       int height)
+{
+    Window* self_instance = get_window(window);
+
+    if (self_instance)
+        self_instance->on_framebuffer_size(width, height);
+}
+
+void Window::on_framebuffer_size(int width,
+                                 int height)
+{
+    m_framebuffer_width = width;
+    m_framebuffer_height = height;
+
+    if (m_framebuffer_size_callback)
+        m_framebuffer_size_callback(width, height);
+}
+
 ```
 
-I mean you can argue and say "well the first example is as readable for me as the second one". That is totaly fine, but for me, it is easier to read. The point is that either way works the same.
-
-
-#### Storing Callbacks as Member Variables
-
-```C++
-FramebufferSizeCallback m_framebuffer_size_callback;
-MouseButtonCallback m_mouse_button_callback;
-CursorPositionCallback m_cursor_position_callback;
-ScrollCallback m_scroll_callback;
-```
-
-Why do we need to define functions as member variables? First of all, let's understand what these lines do in general C++ terms.
-
-```
-
-```
+This is what happens when GLFW calbacks our function.
