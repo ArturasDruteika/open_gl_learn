@@ -262,12 +262,12 @@ Analogous to `framebuffer_size_callback` parameters, our other callback function
 
 #### 1.1.3.2. Declaration
 
-Now that we have a callbacks attached to GLFW system, we need to understand what our declarations of those callbacks look like and why they ar ethe way they are.
+Now that we have a callbacks attached to GLFW system, we need to understand what our function definitions of those callbacks look like and why they ar ethe way they are.
 
 Let's analyze them 1 by 1:
 
 ```C++
-// window.hpp definitions
+// window.hpp declarations
 using FramebufferSizeCallback = std::function<void(int, int)>;
 
 ...
@@ -292,17 +292,7 @@ FramebufferSizeCallback m_framebuffer_size_callback;
 GLFWwindow* m_window;
 
 
-// window.cpp declarations
-
-void Window::framebuffer_size_callback(GLFWwindow* window,
-                                       int width,
-                                       int height)
-{
-    Window* self_instance = get_window(window);
-
-    if (self_instance)
-        self_instance->on_framebuffer_size(width, height);
-}
+// window.cpp definitions
 
 void Window::on_framebuffer_size(int width,
                                  int height)
@@ -314,6 +304,43 @@ void Window::on_framebuffer_size(int width,
         m_framebuffer_size_callback(width, height);
 }
 
+void Window::framebuffer_size_callback(GLFWwindow* window,
+                                       int width,
+                                       int height)
+{
+    Window* self_instance = get_window(window);
+
+    if (self_instance)
+        self_instance->on_framebuffer_size(width, height);
+}
+
 ```
 
-This is what happens when GLFW calbacks our function.
+This is what happens when GLFW calbacks our function. I don't know if there is a best approach to explaining this, but I try doing it from the bottom up.
+
+At first we have a definition of `framebuffer_size_callback()` function. As said before, this is the the exact start of how we start processing frambuffer callback. 
+
+What you need to notice is that this function (in the declaration part (`window.hpp`)) is a [static](https://www.geeksforgeeks.org/cpp/static-member-function-in-cpp/). It needs to be `static` because GLFW accepts only static function declarations when registering callbacks.
+
+In the body of `framebuffer_size_callback()`, first, we get a pointer to the window that we registered in the callback, because we want to use the actual window object that we created earlier (do not forget that this function, even though is in `Window` class, but since it is static, it cannot contain any that object specific logic).
+
+```C++
+Window* self_instance = get_window(window);
+```
+
+After it, an object specific function `on_framebuffer_size()` is called.
+
+```C++
+void Window::on_framebuffer_size(int width,
+                                 int height)
+{
+    m_framebuffer_width = width;
+    m_framebuffer_height = height;
+
+    if (m_framebuffer_size_callback)
+        m_framebuffer_size_callback(width, height);
+}
+```
+
+Finally, we reached a function that implements the actual logic behind 
+
