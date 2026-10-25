@@ -221,7 +221,7 @@ In the purest form, GLFW constantly tracks events that happen on it's window. Wh
 In general, this is how a callback system works. If you attach one, on the next instance of that event your own function will be invoked.
 
 
-### 1.1.3. Callback Functions
+## 1.2. Callback Functions
 
 As you saw earlier, to each of the window event callback set, we had to tell GLFW which specific our function should be called on which GLFW event, so now we have:
 
@@ -233,7 +233,7 @@ cursor position change  -------------->     cursor_position_callback()
 mouse scroll            -------------->     scroll_callback()
 ```
 
-#### 1.1.3.1. Definitions
+### 1.2.1. Definitions
 
 First, lets understand each callback function definition and it's signature.
 
@@ -260,7 +260,7 @@ It does not mean that `framebuffer_size_callback` has to have only width and hei
 Analogous to `framebuffer_size_callback` parameters, our other callback functions have also parameters, that glfw callbacks those functions with.
 
 
-#### 1.1.3.2. Declaration
+### 1.2.2. Declaration
 
 Now that we have a callbacks attached to GLFW system, we need to understand what our function definitions of those callbacks look like and why they ar ethe way they are.
 
@@ -328,7 +328,7 @@ In the body of `framebuffer_size_callback()`, first, we get a pointer to the win
 Window* self_instance = get_window(window);
 ```
 
-After it, an object specific function `on_framebuffer_size()` is called.
+After it, an object specific function `on_framebuffer_size()` is called. Notice, that because this is a static function, we have to first get the window object and call this function from the object.
 
 ```C++
 void Window::on_framebuffer_size(int width,
@@ -342,5 +342,64 @@ void Window::on_framebuffer_size(int width,
 }
 ```
 
-Finally, we reached a function that implements the actual logic behind 
+Finally, we reached an object specific member function. This is window specific code that is executed for each window instance created if the framebuffer callback was registered for that instance. 
 
+As you can see, this is also, a very simple function. What we do, we just store the new width and height parameters. There can be many reasons why we want to store window dimensions, one of them being a getter functions for dimensions. For a more complex systems, width and height members can be used for some conditions such as "do this, if window height is this" and etc.
+
+Also, `on_framebuffer_size()` function has a callback in itself.
+
+```C++
+if (m_framebuffer_size_callback)
+    m_framebuffer_size_callback(width, height);
+```
+
+Before answering "why is this callback needed?" question, first, let's understand what `m_framebuffer_size_callback` is.
+
+If you look at the `window.hpp` file and look for `m_framebuffer_size_callback` you can notice that is of type `FramebufferSizeCallback` which in itself is a:
+
+```C++
+using FramebufferSizeCallback = std::function<void(int, int)>;
+```
+
+[`std::function<...>(...)`](https://www.geeksforgeeks.org/cpp/std-function-in-cpp/) makes function a callable. This allows us to do 1 importatnt thing: it allows us to register another callback to this specific function callable (`m_framebuffer_size_callback`). 
+
+As promised, now we need to understand why we there is a callback attached to `m_framebuffer_size_callback`? Why isn't another callback registered directly to `glfwSetFramebufferSizeCallback(...)`?
+
+
+### 1.2.3. Callback on Callback
+
+In the `Window` class you can notice that there is 1 additional function:
+
+```C++
+// window.hpp
+void set_framebuffer_size_callback(FramebufferSizeCallback callback);
+
+// window.cpp
+void Window::set_framebuffer_size_callback(FramebufferSizeCallback callback)
+{
+    m_framebuffer_size_callback = std::move(callback);
+}
+```
+
+And if we look at the `application.cpp` file, we can find these lines:
+
+```C++
+m_window.set_framebuffer_size_callback(
+    [this](int width, int height)
+    {
+        m_renderer.set_viewport(width, height);
+    }
+);
+```
+
+These 2 functions is what allows us to to control the OpenGL's viewport size according to GLFW window size. In lesson 2 I have said that GLFW window size and OpenGL viewport size are related concepts, but 2 different things. 
+
+![](assets/glfw_opengl_size_diagram.png)
+
+Just to remind ourselves, there are 3 varying dimensions that come into play when rendering a scene:
+
+- **GLFW** window defines the size of the application window on your screen.
+- **OpenGL viewport** defines the rectangular area of the framebuffer where rendered geometry is mapped.
+- **OpenGL framebuffer** is a rendering target that stores pixels colors data. You can think of framebuffer's size as the resolution of your rendered geometry.
+
+Usually, OpenGL renderes geometry into a framebuffer using a viewport that matches (you can also make it so that it would not match, but that's for another lesson) the framebuffer's dimensions. The resulting image in the default framebuffer is then displayed in the GLFW window.
