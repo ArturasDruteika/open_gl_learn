@@ -399,7 +399,164 @@ These 2 functions is what allows us to to control the OpenGL's viewport size acc
 Just to remind ourselves, there are 3 varying dimensions that come into play when rendering a scene:
 
 - **GLFW** window defines the size of the application window on your screen.
-- **OpenGL viewport** defines the rectangular area of the framebuffer where rendered geometry is mapped.
+- **OpenGL viewport** defines the rectangular area of the framebuffer where rendered geometry is mapped on the framebuffer.
 - **OpenGL framebuffer** is a rendering target that stores pixels colors data. You can think of framebuffer's size as the resolution of your rendered geometry.
 
 Usually, OpenGL renderes geometry into a framebuffer using a viewport that matches (you can also make it so that it would not match, but that's for another lesson) the framebuffer's dimensions. The resulting image in the default framebuffer is then displayed in the GLFW window.
+
+Read more about framebuffers and viewports in the X.X section.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Framebuffer and Viewport
+
+In the 1.2.3. section I talked a little bit about GLFW window, OpenGL viewport and OpenGL framebuffer. Here I want to spend a little more time explaining the difference between them, because when finding words to explain their differences I found out that I struggle to do so easily. Because the goal of these lessons is to teach you OpenGL and rendering basics in such a way that even a child could understand I decided that a separate section for this topic is necessary.
+
+I think that explaining GLFW window is not going to be needed here, because you can think about this window the exact same way as any other application you use, that has the ability to be resized. Viewport and framebuffer is a bit different.
+
+As mentioned before, viewport and framebuffer are 2 connected concepts but they cannot be thought as the same thing.
+
+Before continuing I want you to imagine a multiplayer game on a PC or TV where at the same time 4 people can play. Because 4 players play it, there are 4 different camera views, which divide the screen in 4 equal rectangles:
+
+    ┌──────────────────┬──────────────────┐
+    │                  │                  │
+    │    Camera 1      │    Camera 2      │
+    │                  │                  │
+    ├──────────────────┼──────────────────┤
+    │                  │                  │
+    │    Camera 3      │    Camera 4      │
+    │                  │                  │
+    └──────────────────┴──────────────────┘
+
+As mentioned before:
+
+- **Framebuffer** is a rendering target which stores pixel color values that are ready to be shown on the screen.
+- **Viewport** is a rectangular area which specifies where on the framebuffer the rendered geometry should be mapped.
+
+Now imagine these 2 configurations of framebuffer and viewport sizes:
+
+1. Framebuffer - (800, 800), viewport - (400, 400)
+2. Framebuffer - (400, 400), viewport - (800, 800)
+
+For the first configuration we would be getting this:
+
+            FRAMEBUFFER (800 × 800)
+    ┌──────────────────┬──────────────────┐
+    │                  │                  │
+    │    Viewport 1    │    Viewport 2    │
+    │                  │                  │
+    │    400 × 400     │    400 × 400     │
+    │                  │                  │
+    ├──────────────────┼──────────────────┤
+    │                  │                  │
+    │    Viewport 3    │    Viewport 4    │
+    │                  │                  │
+    │    400 × 400     │    400 × 400     │
+    │                  │                  │
+    └──────────────────┴──────────────────┘
+
+And the code part would look something like this:
+
+```C++
+// Top-left
+glViewport(0, 400, 400, 400);
+draw_camera_1();
+
+// Top-right
+glViewport(400, 400, 400, 400);
+draw_camera_2();
+
+// Bottom-left
+glViewport(0, 0, 400, 400);
+draw_camera_3();
+
+// Bottom-right
+glViewport(400, 0, 400, 400);
+draw_camera_4();
+```
+
+Here we have a single framebuffer and 4 different viewports (application can have more than 1 viewport).
+
+In the second configuration, we would have this:
+
+            Viewport (800 × 800)
+    ┌──────────────────┬──────────────────┐
+    │                  │                  │
+    │   Framebuffer 1  │   Framebuffer 2  │
+    │                  │                  │
+    │    400 × 400     │    400 × 400     │
+    │                  │                  │
+    ├──────────────────┼──────────────────┤
+    │                  │                  │
+    │   Framebuffer 3  │   Framebuffer 4  │
+    │                  │                  │
+    │    400 × 400     │    400 × 400     │
+    │                  │                  │
+    └──────────────────┴──────────────────┘
+
+Code would looks like this:
+
+```C++
+// Framebuffer 1
+glBindFramebuffer(GL_FRAMEBUFFER, framebuffer1);
+glViewport(0, 0, 400, 400);
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+draw_camera_1();
+
+// Framebuffer 2
+glBindFramebuffer(GL_FRAMEBUFFER, framebuffer2);
+glViewport(0, 0, 400, 400);
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+draw_camera_2();
+
+// Framebuffer 3
+glBindFramebuffer(GL_FRAMEBUFFER, framebuffer3);
+glViewport(0, 0, 400, 400);
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+draw_camera_3();
+
+// Framebuffer 4
+glBindFramebuffer(GL_FRAMEBUFFER, framebuffer4);
+glViewport(0, 0, 400, 400);
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+draw_camera_4();
+```
+
+Do you understand the difference now? 
+
+Not to elaborate any more, but I want you to understand that there isn't single "best choice" that works for all the possible situations. There are cases where a single framebuffer wih multiple viewports is better, as there are also situations where a single viewport with multiple framebuffers is better.
+
+Also, if you have a single framebuffer (if app does not use more than 1) and if your framebuffer has a larger dimension than that viewport, you are essentially wasting memory of your system, because parts of the framebuffer are never used, just like in this example:
+
+        FRAMEBUFFER (800 × 800)
+    ┌──────────────────────────────┐
+    │                              │
+    │                              │
+    │                              │
+    │                              │
+    ├──────────────┐               │
+    │              │               │
+    │      /\      │               │
+    │     /  \     │               │
+    │    /____\    │               │
+    └──────────────┴───────────────┘
+        VIEWPORT
+        400 × 400
+
+Just remember that viewport tells where on the framebuffer the rendered geometry should be mapped to. 
