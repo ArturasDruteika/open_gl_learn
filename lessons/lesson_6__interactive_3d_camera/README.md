@@ -116,7 +116,7 @@ A great way to manage you project is to follow [SOLID](https://en.wikipedia.org/
 But, even though lesson 6 code looks organized, there are still a lot of classes that do many things instead of a single one (which already breaks the SOLID principles). This is due to the fact, that the goal of this lesson is not to teach you how to write a good code, rather lessons goal is to lay a strong knowledge groundwork so that we could understand how rendering works. Because of it, I cannot spend 10x time writing a perfect code that would do exactly the same as the current one does.
 
 
-# 1. Input handling
+# 1. Input Handling
 
 Before controlling camera we first have to learn how to read input from keyboard and mouse. Do not think about keyboard and mouse for controlling camera only, because with these input devices we can actually control a lot more than you think, for example:
 
@@ -379,11 +379,17 @@ void Window::set_framebuffer_size_callback(FramebufferSizeCallback callback)
 {
     m_framebuffer_size_callback = std::move(callback);
 }
-```
 
-And if we look at the `application.cpp` file, we can find these lines:
+// renderer.hpp
+void set_viewport(int width, int height);
 
-```C++
+// renderer.cpp
+void Renderer::set_viewport(int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
+// application.cpp
 m_window.set_framebuffer_size_callback(
     [this](int width, int height)
     {
@@ -392,7 +398,7 @@ m_window.set_framebuffer_size_callback(
 );
 ```
 
-These 2 functions is what allows us to to control the OpenGL's viewport size according to GLFW window size. In lesson 2 I have said that GLFW window size and OpenGL viewport size are related concepts, but 2 different things. 
+These 2 functions and an additional statement in the application file are what allow us to control the OpenGL's viewport size according to GLFW window size. In lesson 2 I have said that GLFW window size and OpenGL viewport size are related concepts, but 2 different things. 
 
 ![](assets/glfw_opengl_size_diagram.png)
 
@@ -404,12 +410,80 @@ Just to remind ourselves, there are 3 varying dimensions that come into play whe
 
 Usually, OpenGL renderes geometry into a framebuffer using a viewport that matches (you can also make it so that it would not match, but that's for another lesson) the framebuffer's dimensions. The resulting image in the default framebuffer is then displayed in the GLFW window.
 
-Read more about framebuffers and viewports in the X.X section.
+Read more about OpenGL framebuffers and viewports in the [this section](#framebuffer-and-viewport).
+
+Similar to how we registered a callback for framebuffer resize on GLFW window (here framebuffer is a different buffer than the one in OpenGL), here we are setting a callback to resize a OpenGL viewport when resizing GLFW window.
+
+Why can't we register another callback using `glfwSetFramebufferSizeCallback(...)` function? Well, there are 2 reaons why:
+
+1. `glfwSetFramebufferSizeCallback(...)` requires a window argument and OpenGL, actually a renderer class, has no knowledge about window.
+2. Usually, GLFW functionality should be separated from OpenGL functionality, because these 2 things are 2 different concepts and we do not want to couple them tightly together due to project scaling issues. Remember SOLID principles!!!
+
+Because we have a callback inside another callback, our function call scheme looks smth like this:
+
+             GLFW WINDOW RESIZED
+                     │
+                     ▼
+      ┌────────────────────────────────┐
+      │ GLFW framebuffer callback      │
+      │ glfwSetFramebufferSizeCallback │
+      └──────────────┬─────────────────┘
+                     │
+                     ▼
+      ┌──────────────────────────────┐
+      │ Window class                 │
+      │                              │
+      │ m_framebuffer_size_callback  │
+      │         (width, height)      │
+      └──────────────┬───────────────┘
+                     │
+                     ▼
+      ┌──────────────────────────────┐
+      │ Application callback         │
+      │                              │
+      │ [this](int width, int height)│
+      └──────────────┬───────────────┘
+                     │
+                     ▼
+      ┌──────────────────────────────┐
+      │ Renderer class               │
+      │                              │
+      │ set_viewport(width, height)  │
+      └──────────────┬───────────────┘
+                     │
+                     ▼
+      ┌─────────────────────────────────┐
+      │ OpenGL                          │
+      │                                 │
+      │ glViewport(0, 0, width, height) │
+      └─────────────────────────────────┘
+
+To sum it up why we need to resize a viewport when resizing a GLFW window is because if we could change the size of GLFW window without altering the dimensions of OpenGL viewport accordi gly, you would see a weird rendered view on your GLFW window.
+
+I mean just look at what happens when I comment these lines:
+
+```C++
+// // Framebuffer
+// m_window.set_framebuffer_size_callback(
+//     [this](int width, int height)
+//     {
+//         m_renderer.set_viewport(width, height);
+//     }
+// );
+```
+
+This is how resizing window should properly work:
+
+![](assets/proper_resize.png)
+
+And this is what happens when viewport transform is not connected to window resize:
+
+![](assets/broken_resize.png)
+
+Do you see the difference?
 
 
-
-
-
+# 2. Mouse Movement Tracking
 
 
 
