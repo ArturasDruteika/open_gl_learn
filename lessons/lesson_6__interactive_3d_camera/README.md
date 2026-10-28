@@ -485,7 +485,217 @@ Do you see the difference?
 
 # 2. Mouse Movement Tracking
 
+We have just learnt how GLFW events and callbacks on these events work. Now, we can understand how to track mouse movements. 
 
+In this lesson, we need to track mouse movements in order to control the orbital camera. The goal is to press a mouse button (while the cursor is on the GLFW window) and then move the mouse and see how a camera view angle (actually there are angles (plural), because we are in 3D envitonment) changes. The end goal of a orbital camera rotations can be seen at the top of the lesson, in the first gif.
+
+## 2.1. Input Reading
+
+I will not repeat again how to set up callbacks, instead I will just output a necessary piece of code and draw a scheme showing where is called what and what is the flow from process from when GLFW detects mouse move to when the `CameraOrbitController` class receives the event.
+
+```C++
+// window.cpp
+glfwSetCursorPosCallback(m_window, cursor_position_callback);
+
+void Window::cursor_position_callback(GLFWwindow* window,
+                                      double x,
+                                      double y)
+{
+    Window* self_instance = get_window(window);
+
+    if (self_instance)
+        self_instance->on_cursor_position(x, y);
+}
+
+void Window::on_cursor_position(double x,
+                                double y)
+{
+    if (m_cursor_position_callback)
+        m_cursor_position_callback(x, y);
+}
+
+// application.cpp
+m_window.set_cursor_position_callback(
+    [this](double x, double y)
+    {
+        const bool is_ctrl_down =
+            m_window.is_key_pressed(GLFW_KEY_LEFT_CONTROL) ||
+            m_window.is_key_pressed(GLFW_KEY_RIGHT_CONTROL);
+
+        m_camera_controller.on_cursor_position(x,
+                                               y,
+                                               is_ctrl_down);
+    }
+);
+
+// camera_orbit_controller.hpp
+void on_cursor_position(double x,
+                        double y,
+                        bool is_ctrl_down);
+```
+
+This scheme explains how this piece of code works:
+
+                MOUSE MOVED
+                     │
+                     ▼
+      ┌──────────────────────────────┐
+      │ GLFW cursor position callback│
+      │                              │
+      │ glfwSetCursorPosCallback(...)│
+      └──────────────┬───────────────┘
+                     │
+                     ▼
+      ┌──────────────────────────────┐
+      │ Window class                 │
+      │                              │
+      │ cursor_position_callback()   │
+      │             │                │
+      │             ▼                │
+      │ on_cursor_position(x, y)     │
+      │             │                │
+      │             ▼                │
+      │ m_cursor_position_callback   │
+      │          (x, y)              │
+      └──────────────┬───────────────┘
+                     │
+                     ▼
+      ┌──────────────────────────────┐
+      │ Application callback         │
+      │                              │
+      │ [this](double x, double y)   │
+      │                              │
+      │ Check CTRL key state         │
+      └──────────────┬───────────────┘
+                     │
+                     ▼
+        ┌────────────────────────┐
+        │ CameraOrbitController  │
+        │                        │
+        │ on_cursor_position     │
+        │ (x, y, is_ctrl_down)   │
+        └────────────────────────┘
+
+This flow is essentially the same as for the framebuffer resize callbacks logic, but the output is a bit different. With these callbacks we want to pass 2 things to a camera orbit controller:
+
+1. x and y coordinates of a cursor on the GLFW window
+2. Whether or not the `ctrl` button is pressed
+
+With the knowledge of these 2 things `CameraOrbitController` can transform changing cursor position to a camera rotation around the pyramid. Let's see how this magic happens inside.
+
+
+## 2.2. Input Processing
+
+We need input processing for a simple reason: we want to tell the camera how to rotate around the pyramid given yaw and pitch (we will talk about these in the next section) degrees. Currently, you just need to know that yaw and pitch are simple values (defined in degrees (actually in radians)) that tell how a camera (or any other object in general) should rotate.
+
+Below is a piece of code, that does this magic, i.e. that transforms x and y position to yaw and pitch:
+
+```
+          transformation to
+(x, y) -----------------------> (yaw, pitch)
+```
+
+```C++
+namespace
+{
+    constexpr float MOUSE_ORBIT_X_SENSITIVITY = 0.005f;
+    constexpr float MOUSE_ORBIT_Y_SENSITIVITY = 0.005f;
+    constexpr float MOUSE_ROLL_SENSITIVITY = 0.005f;
+    constexpr float MOUSE_ZOOM_SENSITIVITY = 0.2f;
+}
+
+...
+
+void CameraOrbitController::on_mouse_button(int button,
+                                            int action)
+{
+    if (button != GLFW_MOUSE_BUTTON_LEFT)
+        return;
+
+    if (action == GLFW_PRESS)
+    {
+        m_is_left_mouse_down = true;
+        m_has_last_mouse_position = false;
+    }
+    else if (action == GLFW_RELEASE)
+    {
+        m_is_left_mouse_down = false;
+        m_has_last_mouse_position = false;
+    }
+}
+
+void CameraOrbitController::on_cursor_position(double x,
+                                               double y,
+                                               bool is_ctrl_down)
+{
+    if (!m_is_left_mouse_down)
+    {
+        m_last_mouse_x = x;
+        m_last_mouse_y = y;
+        m_has_last_mouse_position = true;
+        return;
+    }
+
+    if (!m_has_last_mouse_position)
+    {
+        m_last_mouse_x = x;
+        m_last_mouse_y = y;
+        m_has_last_mouse_position = true;
+        return;
+    }
+
+    const float dx = static_cast<float>(x - m_last_mouse_x);
+    const float dy = static_cast<float>(y - m_last_mouse_y);
+
+    m_last_mouse_x = x;
+    m_last_mouse_y = y;
+
+    // CTRL + left mouse -> roll
+    if (is_ctrl_down)
+    {
+        m_camera.roll(-dx * MOUSE_ROLL_SENSITIVITY);
+        return;
+    }
+
+    // Mouse X -> yaw
+    // Mouse Y -> pitch
+    m_camera.orbit(dx * MOUSE_ORBIT_Y_SENSITIVITY,
+                   dy * MOUSE_ORBIT_X_SENSITIVITY);
+}
+```
+
+Before we start, here you can see another callback function that we have set up exactly the as window size change and mouse movement change. It is `on_mouse_button()` function. It is yet another callback that's only goal is to track if the mouse button has been pressed.
+
+We need this functionality, because we only want to rotate the camera when moving mouse if the left button of the mouse is pressed. Of course we can remove this callback, but then it would look weird if the camera would be rotated only with mouse movements itself, thus making the user experience awkward.
+
+What this piece of code is doing can be summarized by this scheme:
+
+         ┌────────────────────────┐
+         │ CameraOrbitController  │
+         │                        │
+         │ on_cursor_position     │
+         │ (x, y, is_ctrl_down)   │
+         └────────────────────────┘
+                     │
+                     ▼
+              Left mouse down?
+                 /        \
+               NO          YES
+               │            │
+               ▼            ▼
+         Save cursor    Calculate dx, dy
+         position       (if initialized)
+                            │
+                            ▼
+                       CTRL down?
+                       /        \
+                     YES         NO
+                      │           │
+                      ▼           ▼
+                ┌──────────┐ ┌──────────┐
+                │ Camera   │ │ Camera   │
+                │ roll()   │ │ orbit()  │
+                └──────────┘ └──────────┘
 
 
 
