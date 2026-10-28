@@ -33,7 +33,7 @@ private:
 
     Window m_window;
     OrbitCamera m_camera;
-    OrbitCameraController m_camera_controller;
+    CameraOrbitController m_camera_controller;
     Renderer m_renderer;
 
     Pyramid m_pyramid;

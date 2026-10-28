@@ -4,10 +4,10 @@
 #include "camera_orbit.hpp"
 
 
-class OrbitCameraController
+class CameraOrbitController
 {
 public:
-    explicit OrbitCameraController(OrbitCamera& camera);
+    explicit CameraOrbitController(OrbitCamera& camera);
 
     void on_mouse_button(int button,
                          int action);

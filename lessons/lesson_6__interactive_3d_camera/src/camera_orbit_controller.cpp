@@ -12,7 +12,7 @@ namespace
 }
 
 
-OrbitCameraController::OrbitCameraController(OrbitCamera& camera)
+CameraOrbitController::CameraOrbitController(OrbitCamera& camera)
     : m_camera{ camera }
     , m_is_left_mouse_down{ false }
     , m_has_last_mouse_position{ false }
@@ -22,7 +22,7 @@ OrbitCameraController::OrbitCameraController(OrbitCamera& camera)
 }
 
 
-void OrbitCameraController::on_mouse_button(int button,
+void CameraOrbitController::on_mouse_button(int button,
                                             int action)
 {
     if (button != GLFW_MOUSE_BUTTON_LEFT)
@@ -41,7 +41,7 @@ void OrbitCameraController::on_mouse_button(int button,
 }
 
 
-void OrbitCameraController::on_cursor_position(double x,
+void CameraOrbitController::on_cursor_position(double x,
                                                double y,
                                                bool is_ctrl_down)
 {
@@ -81,7 +81,7 @@ void OrbitCameraController::on_cursor_position(double x,
 }
 
 
-void OrbitCameraController::on_mouse_scroll(double y_offset)
+void CameraOrbitController::on_mouse_scroll(double y_offset)
 {
     m_camera.zoom(-static_cast<float>(y_offset) * MOUSE_ZOOM_SENSITIVITY);
 }
