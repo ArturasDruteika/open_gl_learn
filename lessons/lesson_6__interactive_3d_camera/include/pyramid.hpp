@@ -8,7 +8,8 @@ class Pyramid final
     : public Shape
 {
 public:
-    Pyramid(float width = 0.5f,
+    Pyramid(const glm::vec3& position, 
+            float width = 0.5f,
             float length = 0.5f,
             float height = 0.6f);
 

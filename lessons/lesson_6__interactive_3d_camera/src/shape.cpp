@@ -5,8 +5,9 @@
 #include <utility>
 
 
-Shape::Shape(Mesh mesh)
-    : m_mesh{ std::move(mesh) }
+Shape::Shape(const glm::vec3& position, Mesh mesh)
+    : m_position{ position }
+    , m_mesh{ std::move(mesh) }
 {
 }
 

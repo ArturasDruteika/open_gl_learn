@@ -70,13 +70,13 @@ void CameraOrbitController::on_cursor_position(double x,
     // CTRL + left mouse -> roll
     if (is_ctrl_down)
     {
-        m_camera.roll(-dx * MOUSE_ROLL_SENSITIVITY);
+        m_camera.roll(dx * MOUSE_ROLL_SENSITIVITY);
         return;
     }
 
     // Mouse X -> yaw
     // Mouse Y -> pitch
-    m_camera.orbit(dx * MOUSE_ORBIT_Y_SENSITIVITY,
+    m_camera.orbit(-dx * MOUSE_ORBIT_Y_SENSITIVITY,
                    dy * MOUSE_ORBIT_X_SENSITIVITY);
 }
 

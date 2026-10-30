@@ -146,8 +146,8 @@ glm::mat4 Renderer::create_projection_matrix(int width,
         static_cast<float>(width) /
         static_cast<float>(height);
 
-    return glm::perspective(glm::radians(FOV_DEGREES_Y_AXIS),
-                            aspect_ratio,
-                            NEAR_PLANE,
-                            FAR_PLANE);
+    return glm::perspectiveLH_NO(glm::radians(FOV_DEGREES_Y_AXIS),
+                                 aspect_ratio,
+                                 NEAR_PLANE,
+                                 FAR_PLANE);
 }

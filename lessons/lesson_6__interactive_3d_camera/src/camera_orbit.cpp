@@ -75,7 +75,7 @@ glm::mat4 OrbitCamera::get_view_matrix() const
     const glm::vec3 camera_position = camera_orientation * (m_base_position * m_distance);
     const glm::vec3 camera_up = glm::normalize(camera_orientation * glm::vec3(0.0f, 1.0f, 0.0f));
 
-    return glm::lookAt(camera_position,
-                       glm::vec3(0.0f, 0.0f, 0.0f),
-                       camera_up);
+    return glm::lookAtLH(camera_position,
+                         glm::vec3(0.0f, 0.0f, 0.0f),
+                         camera_up);
 }

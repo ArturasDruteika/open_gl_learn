@@ -5,10 +5,12 @@
 #include <vector>
 
 
-Pyramid::Pyramid(float width, 
+Pyramid::Pyramid(const glm::vec3& position, 
+                 float width, 
                  float length, 
                  float height)
-    : Shape{ create_mesh(width, 
+    : Shape{ position,
+             create_mesh(width, 
                          length, 
                          height) }
     , m_width{ width }

@@ -25,7 +25,7 @@ public:
     glm::mat4 get_model_matrix() const;
 
 protected:
-    explicit Shape(Mesh mesh);
+    explicit Shape(const glm::vec3& position, Mesh mesh);
 
 private:
     Mesh m_mesh;

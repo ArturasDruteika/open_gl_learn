@@ -20,13 +20,12 @@ namespace
 
 Application::Application()
     : m_is_opengl_initialized{ false }
-    , m_camera{
-        glm::vec3(0.0f, 0.0f, 2.5f),
-        glm::radians(20.0f),
-        glm::radians(-35.0f),
-        glm::radians(90.0f)
-    }
+    , m_camera{ glm::vec3(0.0f, 0.0f, 2.5f),
+                glm::radians(20.0f),
+                glm::radians(-35.0f),
+                glm::radians(90.0f) }
     , m_camera_controller{ m_camera }
+    , m_pyramid{ glm::vec3{ 0.0f, 0.0f, 0.0f } }
 {
 }
 
