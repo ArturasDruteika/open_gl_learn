@@ -483,7 +483,7 @@ And this is what happens when viewport transform is not connected to window resi
 Do you see the difference?
 
 
-# Yaw, Pitch, Roll
+# 2. Yaw, Pitch, Roll
 
 Before understanding how we can rotate camera around an object and how to do it by tracking mouse movements, we first need to understand 3 important concepts in rendering (and actually overall in math and physics). 
 
@@ -498,6 +498,47 @@ Remember how in lesson 5 I have spent entire sections talking about camera rotat
 So what are they? I hope this image will be self explanatory.
 
 ![yaw, pitch, roll](assets/yaw_pitch_roll.png)
+
+From this image, we can understand that:
+
+- **Yaw** is a rotation around the Y axis
+- **Pitch** is a rotation around X axis
+- **Roll** is a rotation around Z axis
+
+Great, we know their definitions, but we still do not know what is a positive and negative rotation around each axis.
+
+
+## 2.1. World Space Axes
+
+First of all, let's again understand the axes directions and positive rotations. We have to set the rules to tell what is positive and negative rotation and what is up - down, left - right, forward - backward.
+
+What I like to do for these conventions is follow a pure math. In school we learned that a positive rotation is a counterclockwise if our +X is pointing right and +Y is pointing up. Following this example let's build our axes.
+
+Because the camera is orbiting an object (and not being rotated itself), we have to draw axes from that object's perspective, or rather from a perspective of the origin.
+
+First of all, where is the forward and backward for that object? This is the key rule, according to which we will build all the remaining axes. In lesson 5 we learned that -Z axis is pointing towards the screen when the camera is put at the initial position. Since the camera is looking at the object at the object at the origin it must mean that for that object the +Z forward for it.
+
+So now we can say that for the object at the origin (0, 0, 0), the forward direction would be like looking directly forward.
+
+Ok, now in the world coordinates, what is right and up (+X and +Y axes)? For this configuration we can imagine primary math classes, where we always said that +X is right and +Y is up. So we can apply the same rules for the object at the origin also.
+
+So now, from the point of view of the object at the origin we have these axes and it's configurations:
+
+- +X ---> right
+- +Y ---> up
+- +Z ---> forward
+
+Great, we have set the rules for the world space. Now how about a camera, how would these coordinates look like from the camera point of view?
+
+When creating camera, a simple rule we can foloow is to put the camera at the model space coords: $(0, 0, +z)$ when we are creating a camera object. Ok, we have a camera position, now what about where the camera looks?
+
+In this lesson, one of the goals is to allow the users to control the camera, Since the object is stationary, with control we are essentially just changing the orbital position of the camera. Since camera is orbiting, it will always look into the same point in space and the best place to at (at least for this lesson) is the origin (where we have our pyramid created).
+
+
+## 2.2. Positive Rotations
+
+We defind axes, we need to define what are positive rotations. Since the camera is the one that is being rotated around the origin, the positive rotation is defined relative to the origin. 
+
 
 
 
