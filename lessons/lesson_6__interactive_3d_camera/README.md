@@ -516,7 +516,7 @@ What I like to do for these conventions is follow a pure math. In school we lear
 
 Because the camera is orbiting an object (and not being rotated itself), we have to draw axes from that object's perspective, or rather from a perspective of the origin.
 
-First of all, where is the forward and backward for that object? This is the key rule, according to which we will build all the remaining axes. In lesson 5 we learned that -Z axis is pointing towards the screen when the camera is put at the initial position. Since the camera is looking at the object at the object at the origin it must mean that for that object the +Z forward for it.
+Where is the forward and backward for that object? This is the key rule, according to which we will build all the remaining axes. In lesson 5 we learned that -Z axis is pointing towards the screen when the camera is put at the initial position. Since the camera is looking at the object at the object at the origin it must mean that for that object the +Z forward for it.
 
 So now we can say that for the object at the origin (0, 0, 0), the forward direction would be like looking directly forward.
 
@@ -539,8 +539,21 @@ In this lesson, one of the goals is to allow the users to control the camera, Si
 
 We defind axes, we need to define what are positive rotations. Since the camera is the one that is being rotated around the origin, the positive rotation is defined relative to the origin. 
 
+Now looking back at the original image at the start of this section, you can notice that all of the rotations are considered positive if it is counter clockwise.
 
+You might ask me: "How did you come up with these graphs? Why some axes are positive when they point down?". The reason behind these is the just the way I decided to follow my own convention.
 
+Each of the 3 graphs have 1 thing in commong. The main axis of rotation points towards the screen (forward) and because of it and the way we have set up our 3D world space coords, we have the rotation graphs.
+
+I mean just think about it, if we have an initial position of (0, 0, 0) and look in the +Z direction, then +Y is up and +X is right. When we look directly to +Y, then the X axis is horizontal and Z axis is vertical, where +Z points down. The exact same rules were applied for the pitch and roll graphs.
+
+When I had the 3 graphs set up, I decided that for each of the graph the positive rotation will be counter clockwise.
+
+The main thing is that after we have set up these rules, no matter what happens next in the future, we always have to abide by these rules, otherwise, a weird behavior will happen if we apply rotations with different rules.
+
+Also, you can create your own rules. Whatever makes you feel happy or makes it easier to apply rotations. Just make sure that after designing your rules, do not change them later in the future (I mean do not mix up your rules when developing you rotations calculations and logic).
+
+We now have a basic knowledge about yaw, pitch and roll, now let's understand how to convert user input and window events into an actual camera rotations.
 
 
 # 3. Mouse Movement Tracking
@@ -646,13 +659,17 @@ With the knowledge of these 2 things `CameraOrbitController` can transform chang
 
 ## 3.2. Input Processing
 
-We need input processing for a simple reason: we want to tell the camera how to rotate around the pyramid given yaw and pitch (we will talk about these in the next section) degrees. Currently, you just need to know that yaw and pitch are simple values (defined in degrees (actually in radians)) that tell how a camera (or any other object in general) should rotate.
+We need input processing for a simple reason: we want to tell the camera how to rotate around the pyramid given yaw, pitch and roll.
 
 Below is a piece of code, that does this magic, i.e. that transforms x and y position to yaw and pitch:
 
 ```
           transformation to
-(x, y) -----------------------> (yaw, pitch)
+(dx, dy) -----------------------> (yaw, pitch)
+
+
+                      transformation to
+(dx, is_ctrl_down) -----------------------> (roll)
 ```
 
 ```C++
@@ -666,8 +683,7 @@ namespace
 
 ...
 
-void CameraOrbitController::on_mouse_button(int button,
-                                            int action)
+void CameraOrbitController::on_mouse_button(int button, int action)
 {
     if (button != GLFW_MOUSE_BUTTON_LEFT)
         return;
@@ -680,7 +696,6 @@ void CameraOrbitController::on_mouse_button(int button,
     else if (action == GLFW_RELEASE)
     {
         m_is_left_mouse_down = false;
-        m_has_last_mouse_position = false;
     }
 }
 
@@ -689,12 +704,7 @@ void CameraOrbitController::on_cursor_position(double x,
                                                bool is_ctrl_down)
 {
     if (!m_is_left_mouse_down)
-    {
-        m_last_mouse_x = x;
-        m_last_mouse_y = y;
-        m_has_last_mouse_position = true;
         return;
-    }
 
     if (!m_has_last_mouse_position)
     {
@@ -710,27 +720,24 @@ void CameraOrbitController::on_cursor_position(double x,
     m_last_mouse_x = x;
     m_last_mouse_y = y;
 
-    // CTRL + left mouse -> roll
     if (is_ctrl_down)
     {
-        m_camera.roll(-dx * MOUSE_ROLL_SENSITIVITY);
+        m_camera.roll(dx * MOUSE_ROLL_SENSITIVITY);
         return;
     }
 
-    // Mouse X -> yaw
-    // Mouse Y -> pitch
-    m_camera.orbit(dx * MOUSE_ORBIT_Y_SENSITIVITY,
-                   dy * MOUSE_ORBIT_X_SENSITIVITY);
+    m_camera.orbit(-dx * MOUSE_ORBIT_X_SENSITIVITY,
+                   dy * MOUSE_ORBIT_Y_SENSITIVITY);
 }
 ```
 
-Before we start, here you can see another callback function that we have set up exactly the as window size change and mouse movement change. It is `on_mouse_button()` function. It is yet another callback that's only goal is to track if the mouse button has been pressed.
+Before we start, here you can see another callback function that we have set up exactly the as window size change and mouse movement change. It is `on_mouse_button(...)` function. It is yet another callback that's only goal is to track if the mouse button has been pressed.
 
 We need this functionality, because we only want to rotate the camera when moving mouse if the left button of the mouse is pressed. Of course we can remove this callback, but then it would look weird if the camera would be rotated only with mouse movements itself, thus making the user experience awkward.
 
 The goal of this callback is to tell whether or not the left mouse button is pressed or not. Now let's understand what these 2 functions do combined.
 
-What that piece of code is doing can be summarized by this scheme:
+What `on_mouse_button(...)` and `on_cursor_position(...)` and is doing can be summarized by this scheme:
 
          ┌────────────────────────┐
          │ CameraOrbitController  │
@@ -745,26 +752,70 @@ What that piece of code is doing can be summarized by this scheme:
                NO          YES
                │            │
                ▼            ▼
-         Save cursor    Calculate dx, dy
-         position       (if initialized)
-                            │
-                            ▼
-                       CTRL down?
-                       /        \
-                     YES         NO
-                      │           │
-                      ▼           ▼
-                ┌──────────┐ ┌──────────┐
-                │ Camera   │ │ Camera   │
-                │ roll()   │ │ orbit()  │
-                └──────────┘ └──────────┘
+             Return     Last position
+                        initialized?
+                         /       \
+                       NO         YES
+                       │           │
+                       ▼           ▼
+                 Save cursor   Calculate dx, dy
+                 position      and update position
+                       │           │
+                       ▼           ▼
+                 Set initialized  CTRL down?
+                 to true          /       \
+                       │        YES        NO
+                       ▼         │          │
+                     Return      ▼          ▼
+                            ┌──────────┐ ┌──────────┐
+                            │ Camera   │ │ Camera   │
+                            │ roll()   │ │ orbit()  │
+                            └──────────┘ └──────────┘
 
-To analyze how these 2 functions work, I suggest starting from the bottom. We need to understand completely, what we pass to the camera, I mean how does `x` and `y` become yaw and pitch.
+For now, let's ignore the roll, we will understand it immediately after realizing how yaw and pitch calculation happens.
 
+First of all, as mentioned earlier, we need to only track the mouse movements if the left mouse button is pressed. If it is not pressed - perform no calculations. This is exactly what this does:
 
+```C++
+if (button != GLFW_MOUSE_BUTTON_LEFT)
+    return;
+```
 
+What happens if we press the left mouse button?
 
+```C++
+if (action == GLFW_PRESS)
+{
+    m_is_left_mouse_down = true;
+    m_has_last_mouse_position = false;
+}
+```
 
+Immediately, 2 flags come are set:
+
+- `m_is_left_mouse_down` flag tells our class (`CameraOrbitController`) that GLFW detected a left mouse click. We need it, because we have to have some way of telling our program "Hey, left mouse click was detected. From now process any incoming cursor position change.".
+- `m_has_last_mouse_position` flag tells if we have a valid previous cursor position to calculate the movement from. We cannot calculate change in x and y if we did not store the previous mose position. with this flag we indicate that we can start saving mouse position coordinates moving forward.
+
+We pressed a button, and these 2 flags got set, what happens next? If we do not move our mouse accross GLFW window, nothing really happens, because `on_cursor_position(...)` only gets called if GLFW detects mouse movement. What happens if we move mouse?
+
+```C++
+    if (!m_is_left_mouse_down)
+        return;
+
+    if (!m_has_last_mouse_position)
+    {
+        m_last_mouse_x = x;
+        m_last_mouse_y = y;
+        m_has_last_mouse_position = true;
+        return;
+    }
+```
+
+We immediately hit a 2 `if` statements. What do both of them do?
+
+The first if: `if (!m_is_left_mouse_down)` checks if the mouse button is pressed. If not, no need to perform any operations, immediately return. We do not need to calculate and waste our performance for events that will not trigger camera rotation.
+
+The second if: `if (!m_has_last_mouse_position)` is what stores the mouse position and, sort of, is the entry point from which we can start to calculate the rotation based on mouse movement. We store mouse `x` and `y` coords and also change the state `m_has_last_mouse_position` to `true` so that for later mouse movement events, we immediately skip this `if` statement and proceed directly to calculation.
 
 
 

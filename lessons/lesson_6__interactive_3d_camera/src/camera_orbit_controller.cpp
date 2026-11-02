@@ -11,7 +11,6 @@ namespace
     constexpr float MOUSE_ZOOM_SENSITIVITY = 0.2f;
 }
 
-
 CameraOrbitController::CameraOrbitController(OrbitCamera& camera)
     : m_camera{ camera }
     , m_is_left_mouse_down{ false }
@@ -21,9 +20,7 @@ CameraOrbitController::CameraOrbitController(OrbitCamera& camera)
 {
 }
 
-
-void CameraOrbitController::on_mouse_button(int button,
-                                            int action)
+void CameraOrbitController::on_mouse_button(int button, int action)
 {
     if (button != GLFW_MOUSE_BUTTON_LEFT)
         return;
@@ -36,22 +33,15 @@ void CameraOrbitController::on_mouse_button(int button,
     else if (action == GLFW_RELEASE)
     {
         m_is_left_mouse_down = false;
-        m_has_last_mouse_position = false;
     }
 }
-
 
 void CameraOrbitController::on_cursor_position(double x,
                                                double y,
                                                bool is_ctrl_down)
 {
     if (!m_is_left_mouse_down)
-    {
-        m_last_mouse_x = x;
-        m_last_mouse_y = y;
-        m_has_last_mouse_position = true;
         return;
-    }
 
     if (!m_has_last_mouse_position)
     {
@@ -67,19 +57,15 @@ void CameraOrbitController::on_cursor_position(double x,
     m_last_mouse_x = x;
     m_last_mouse_y = y;
 
-    // CTRL + left mouse -> roll
     if (is_ctrl_down)
     {
         m_camera.roll(dx * MOUSE_ROLL_SENSITIVITY);
         return;
     }
 
-    // Mouse X -> yaw
-    // Mouse Y -> pitch
-    m_camera.orbit(-dx * MOUSE_ORBIT_Y_SENSITIVITY,
-                   dy * MOUSE_ORBIT_X_SENSITIVITY);
+    m_camera.orbit(-dx * MOUSE_ORBIT_X_SENSITIVITY,
+                   dy * MOUSE_ORBIT_Y_SENSITIVITY);
 }
-
 
 void CameraOrbitController::on_mouse_scroll(double y_offset)
 {
