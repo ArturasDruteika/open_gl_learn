@@ -24,14 +24,14 @@ At the end of this lesson we will be able to control our camera and view our pyr
 
 0. [Project Structure](#0-project-structure)
 1. [Input Handling](#1-input-handling)
-2. [Yaw, Pitch, Roll](#3-yaw-and-pitch)
-3. [Mouse Movement Tracking](#2-mouse-movement-tracking)
-4. [Local Camera Axes](#4-local-camera-axes)
-5. [Camera Roll](#5-camera-roll)
-6. [Camera Zoom](#5-camera-zoom)
-7. [Quaternion Rotations](#6-quaternion-rotations)
-8. [Orbit Camera](#7-orbit-camera)
-9. [View Matrix](#8-view-matrix)
+2. [Yaw, Pitch, Roll](#2-yaw-pitch-roll)
+3. [Mouse Movement Tracking](#3-mouse-movement-tracking)
+   - 3.1. [Input Reading](#31-input-reading)
+   - 3.2. [Input Processing](#32-input-processing)
+     - 3.2.1. [Mouse Input to Camera Rotation](#321-mouse-input-to-camera-rotation)
+     - 3.2.2. [Scroll to Camera Zoom](#322-scroll-to-camera-zoom)
+5. [Quaternion Rotations](#5-quaternion-rotations)
+4. [Framebuffer and Viewport](#framebuffer-and-viewport)
 
 
 # 0. Project Structure
@@ -659,6 +659,8 @@ With the knowledge of these 2 things `CameraOrbitController` can transform chang
 
 ## 3.2. Input Processing
 
+### 3.2.1. Mouse Input to Camera Rotation
+
 We need input processing for a simple reason: we want to tell the camera how to rotate around the pyramid given yaw, pitch and roll.
 
 Below is a piece of code, that does this magic, i.e. that transforms x and y position to yaw and pitch:
@@ -799,16 +801,16 @@ Immediately, 2 flags come are set:
 We pressed a button, and these 2 flags got set, what happens next? If we do not move our mouse accross GLFW window, nothing really happens, because `on_cursor_position(...)` only gets called if GLFW detects mouse movement. What happens if we move mouse?
 
 ```C++
-    if (!m_is_left_mouse_down)
-        return;
+if (!m_is_left_mouse_down)
+    return;
 
-    if (!m_has_last_mouse_position)
-    {
-        m_last_mouse_x = x;
-        m_last_mouse_y = y;
-        m_has_last_mouse_position = true;
-        return;
-    }
+if (!m_has_last_mouse_position)
+{
+    m_last_mouse_x = x;
+    m_last_mouse_y = y;
+    m_has_last_mouse_position = true;
+    return;
+}
 ```
 
 We immediately hit a 2 `if` statements. What do both of them do?
@@ -817,8 +819,106 @@ The first if: `if (!m_is_left_mouse_down)` checks if the mouse button is pressed
 
 The second if: `if (!m_has_last_mouse_position)` is what stores the mouse position and, sort of, is the entry point from which we can start to calculate the rotation based on mouse movement. We store mouse `x` and `y` coords and also change the state `m_has_last_mouse_position` to `true` so that for later mouse movement events, we immediately skip this `if` statement and proceed directly to calculation.
 
+```C++
+const float dx = static_cast<float>(x - m_last_mouse_x);
+const float dy = static_cast<float>(y - m_last_mouse_y);
+```
+
+Simple math, store the change in cursor (mouse) position. We know the currecnt `x` and `y`, and we know the previouse values `m_last_mouse_x` and `m_last_mouse_y`.
+
+```C++
+m_last_mouse_x = x;
+m_last_mouse_y = y;
+```
+
+For the aforementioned reasons, we need to store the current coordinates, which are the previous coordinates in the next time, this callback is called.
+
+```C++
+if (is_ctrl_down)
+{
+    m_camera.roll(dx * MOUSE_ROLL_SENSITIVITY);
+    return;
+}
+
+m_camera.orbit(-dx * MOUSE_ORBIT_X_SENSITIVITY,
+                dy * MOUSE_ORBIT_Y_SENSITIVITY);
+```
+
+Once we know the change for both coordinates, we can call a camera objct so that internally it could rotate the camera. 
+
+If we look again at the `orbit(float yaw_delta, float pitch_delta)` function, it expects yaw and pitch values. The question is "how do we transform a simple change in `dx`, `dy` and ctrl + `dx` to yaw, pitch, roll?".
+
+The idea is simple. Remember, how the very early webpages had the drag for scrolling? Probobly not, because that happened in the 80s. Imagine, that instead of a mouse scroll, you had to press a mouse button and then drag it either up or down, in order to to see what is up or downin the webpage. Here, we are actually doing the same thing. By dragging our mouse (once the left mouse button is pressed) we are changing the corresponding camera rotation.
+
+The defined rules are as follows:
+
+```
+       dx -----> yaw
+       dy -----> pitch
+ctrl + dx -----> yaw
+```
+
+`MOUSE_ORBIT_X_SENSITIVITY`, `MOUSE_ORBIT_Y_SENSITIVITY`, `MOUSE_ROLL_SENSITIVITY` are just 3 constants that let's us control how fast does the change in x or y coordinate affect the rotation value. Later, it is preffered to make these constants controllable by the user.
+
+So that is, essentially, it. We learned to transform the mouse input to an actual camera rotation around the pyramid.
 
 
+### 3.2.2. Scroll to Camera Zoom
+
+The same exact analogy and processes apply to camera zoom. To sum it up, this graph explicitly tells how we are processing mouse from when the mouse wheel is scrolled, to when the camera zoom activates:
+
+            MOUSE SCROLL WHEEL
+                     │
+                     ▼
+      ┌──────────────────────────────┐
+      │ GLFW scroll callback         │
+      │                              │
+      │ glfwSetScrollCallback(...)   │
+      └──────────────┬───────────────┘
+                     │
+                     ▼
+      ┌──────────────────────────────┐
+      │ Window class                 │
+      │                              │
+      │ scroll_callback()            │
+      │              │               │
+      │              ▼               │
+      │ on_scroll(y_offset)          │
+      │              │               │
+      │              ▼               │
+      │ m_scroll_callback            │
+      │       (y_offset)             │
+      └──────────────┬───────────────┘
+                     │
+                     ▼
+      ┌──────────────────────────────┐
+      │ Application callback         │
+      │                              │
+      │ [this](double y_offset)      │
+      │              │               │
+      │              ▼               │
+      │ m_camera_controller          │
+      │   .on_mouse_scroll(y_offset) │
+      └──────────────┬───────────────┘
+                     │
+                     ▼
+      ┌──────────────────────────────┐
+      │ CameraOrbitController        │
+      │                              │
+      │ on_mouse_scroll(y_offset)    │
+      └──────────────┬───────────────┘
+                     │
+                     ▼
+           Calculate zoom amount
+                     │
+                     ▼
+             -y_offset * 0.2f
+                     │
+                     ▼
+             ┌──────────────┐
+             │    Camera    │
+             │    zoom()    │
+             └──────────────┘
 
 
 # Framebuffer and Viewport
