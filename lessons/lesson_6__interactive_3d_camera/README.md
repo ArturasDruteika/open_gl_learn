@@ -30,8 +30,13 @@ At the end of this lesson we will be able to control our camera and view our pyr
    - 3.2. [Input Processing](#32-input-processing)
      - 3.2.1. [Mouse Input to Camera Rotation](#321-mouse-input-to-camera-rotation)
      - 3.2.2. [Scroll to Camera Zoom](#322-scroll-to-camera-zoom)
-5. [Quaternion Rotations](#5-quaternion-rotations)
-4. [Framebuffer and Viewport](#framebuffer-and-viewport)
+4. [Quaternion Rotations](#4-quaternion-rotations)
+   - 4.1. [Euler Angles](#41-euler-angles)
+   - 4.2. [Gimbal Lock](#42-gimbal-lock)
+   - 4.3. [Introducing Quaternions](#43-introducing-quaternions)
+   - 4.4. [How Quaternions Work](#46-how-quaternions-work)
+   - 4.5. [Quaternions in Our Camera](#45-quaternions-in-our-camera)
+5. [Framebuffer and Viewport](#5-framebuffer-and-viewport)
 
 
 # 0. Project Structure
@@ -921,7 +926,795 @@ The same exact analogy and processes apply to camera zoom. To sum it up, this gr
              └──────────────┘
 
 
-# Framebuffer and Viewport
+# 4. Quaternion Rotations
+
+The last topic I want to touch in this lesson are the quaternions. Before continuing, let me just say that quaternions are the way when dealing with rotations in 3D environment and many 3D engines use them to avoid weird issues, which we are going to discuss later.
+
+In order to understand what quaternions are, I first suggest to make a little side step, by learning what Euler angles are, because understanding them will allow us unlock the real power of quaternions when dealing with 3D rotations.
+
+## 4.1. Euler Angles
+
+Euler angles - is just a fancy name for usual angles that we use everyday. For example: "roatate 90&deg; to the left", or "raise your head 45&deg; to see what is above" and etc.. 
+
+To be more precise, **euler angles** are a set of 3 numerical values that describe a 3D orientation. Those 3 values are:
+
+- Yaw
+- Pitch
+- Roll
+
+There is no difference if we express those angles in degrees, or more mathematically natural way, in radians.
+
+Here are a few examples of eurler angles:
+
+$
+    (45^\circ, 120^\circ, -90^\circ) - \text{degrees} \\
+    (\pi / 4, 3\pi / 5, -\pi) - \text{radians}
+$
+
+Just remember that eurler angles describe rotations in **3D** environment, not 2D or 4D or any other dimension.
+
+
+## 4.2. Gimbal Lock
+
+Since Euler angles are so easy to understand, why is there a need to use anything other than them? Well, judging by the name of this section, I bet you can already guess that Euler angles have a major drawback when dealing with rotations in 3D space.
+
+But how exactly does gimbal lock happen? Let's try to understand it mathematically.
+
+Remember from our previous lesson that we can represent rotations using rotation matrices. Since we have three axes, we also have three corresponding rotation matrices.
+
+**Rotation around the X-axis (Pitch):**
+
+$$
+R_x(\theta) =
+\begin{bmatrix}
+1 & 0 & 0 \\
+0 & \cos\theta & -\sin\theta \\
+0 & \sin\theta & \cos\theta
+\end{bmatrix}
+$$
+
+**Rotation around the Y-axis (Yaw):**
+
+$$
+R_y(\psi) =
+\begin{bmatrix}
+\cos\psi & 0 & \sin\psi \\
+0 & 1 & 0 \\
+-\sin\psi & 0 & \cos\psi
+\end{bmatrix}
+$$
+
+**Rotation around the Z-axis (Roll):**
+
+$$
+R_z(\phi) =
+\begin{bmatrix}
+\cos\phi & -\sin\phi & 0 \\
+\sin\phi & \cos\phi & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+$$
+
+Where:
+
+- $\theta$ (theta) represents pitch (X-axis).
+- $\psi$ (psi) represents yaw (Y-axis).
+- $\phi$ (phi) represents roll (Z-axis).
+
+To describe the final orientation of our camera, we can combine these three rotations.
+
+Remember that in Lesson 5, we decided to use the following rotation order:
+
+```cpp
+rotate_z * rotate_y * rotate_x
+```
+
+Mathematically, we can represent this as:
+
+$$
+\boxed{R = R_z(\phi)R_y(\psi)R_x(\theta)}
+$$
+
+Remember that matrix multiplication is performed from right to left when transforming column vectors. Therefore, our rotations are applied in the following order:
+
+1. **Pitch ($\theta$)** — rotation around the X-axis.
+2. **Yaw ($\psi$)** — rotation around the Y-axis.
+3. **Roll ($\phi$)** — rotation around the Z-axis.
+
+This is exactly the same rotation order we used in Lesson 5.
+
+Now, let's imagine that we rotate our camera by **90° around the Y-axis**, meaning:
+
+$$
+\psi = 90^\circ = \frac{\pi}{2}
+$$
+
+We know that:
+
+$$
+\cos(90^\circ) = 0
+$$
+
+$$
+\sin(90^\circ) = 1
+$$
+
+Therefore, our yaw rotation matrix becomes:
+
+$$
+R_y(90^\circ) =
+\begin{bmatrix}
+0 & 0 & 1 \\
+0 & 1 & 0 \\
+-1 & 0 & 0
+\end{bmatrix}
+$$
+
+Now let's substitute this matrix into our original rotation equation:
+
+$$
+R = R_z(\phi)R_y(90^\circ)R_x(\theta)
+$$
+
+Remember that our rotation order is X → Y → Z. Therefore, the X-axis rotation is applied first, followed by the Y-axis rotation, and finally the Z-axis rotation.
+
+Since matrix multiplication is associative, we can first combine the X-axis and Y-axis rotations, and then multiply the result by the Z-axis rotation:
+
+$$
+R = R_z(\phi)\left[R_y(90^\circ)R_x(\theta)\right]
+$$
+
+### Step 1: Multiplying the Y-axis and X-axis rotation matrices
+
+Let's start by multiplying the yaw and pitch matrices:
+
+$$
+R_y(90^\circ)R_x(\theta) =
+\begin{bmatrix}
+0 & 0 & 1 \\
+0 & 1 & 0 \\
+-1 & 0 & 0
+\end{bmatrix}
+\begin{bmatrix}
+1 & 0 & 0 \\
+0 & \cos\theta & -\sin\theta \\
+0 & \sin\theta & \cos\theta
+\end{bmatrix}
+$$
+
+Remember how matrix multiplication works. To calculate a single element of the resulting matrix, we multiply the corresponding row from the first matrix by the corresponding column from the second matrix and add the results together.
+
+For example, to calculate the element in the first row and second column, we take:
+
+- The first row of the Y-axis rotation matrix: $(0, 0, 1)$
+- The second column of the X-axis rotation matrix: $(0, \cos\theta, \sin\theta)$
+
+We multiply their corresponding components and add them:
+
+$$
+0 \cdot 0 + 0 \cdot \cos\theta + 1 \cdot \sin\theta
+$$
+
+Which simplifies to:
+
+$$
+\sin\theta
+$$
+
+Now let's apply the same process to every element of the resulting matrix.
+
+**First row:**
+
+$$
+\begin{aligned}
+r_{11} &= 0 \cdot 1 + 0 \cdot 0 + 1 \cdot 0 = 0 \\[6pt]
+r_{12} &= 0 \cdot 0 + 0 \cdot \cos\theta + 1 \cdot \sin\theta = \sin\theta \\[6pt]
+r_{13} &= 0 \cdot 0 + 0 \cdot (-\sin\theta) + 1 \cdot \cos\theta = \cos\theta
+\end{aligned}
+$$
+
+**Second row:**
+
+$$
+\begin{aligned}
+r_{21} &= 0 \cdot 1 + 1 \cdot 0 + 0 \cdot 0 = 0 \\[6pt]
+r_{22} &= 0 \cdot 0 + 1 \cdot \cos\theta + 0 \cdot \sin\theta = \cos\theta \\[6pt]
+r_{23} &= 0 \cdot 0 + 1 \cdot (-\sin\theta) + 0 \cdot \cos\theta = -\sin\theta
+\end{aligned}
+$$
+
+**Third row:**
+
+$$
+\begin{aligned}
+r_{31} &= (-1) \cdot 1 + 0 \cdot 0 + 0 \cdot 0 = -1 \\[6pt]
+r_{32} &= (-1) \cdot 0 + 0 \cdot \cos\theta + 0 \cdot \sin\theta = 0 \\[6pt]
+r_{33} &= (-1) \cdot 0 + 0 \cdot (-\sin\theta) + 0 \cdot \cos\theta = 0
+\end{aligned}
+$$
+
+Now we can put all nine calculated elements into a single matrix:
+
+$$
+R_y(90^\circ)R_x(\theta) =
+\begin{bmatrix}
+0 & \sin\theta & \cos\theta \\
+0 & \cos\theta & -\sin\theta \\
+-1 & 0 & 0
+\end{bmatrix}
+$$
+
+Great! We have successfully combined our X-axis and Y-axis rotations into a single matrix.
+
+But remember, our original rotation equation also contained the Z-axis rotation:
+
+$$
+R = R_z(\phi)R_y(90^\circ)R_x(\theta)
+$$
+
+We still need to include it.
+
+### Step 2: Multiplying the result by the Z-axis rotation matrix
+
+Now let's multiply our result by the roll rotation matrix:
+
+$$
+R =
+\begin{bmatrix}
+\cos\phi & -\sin\phi & 0 \\
+\sin\phi & \cos\phi & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix}
+0 & \sin\theta & \cos\theta \\
+0 & \cos\theta & -\sin\theta \\
+-1 & 0 & 0
+\end{bmatrix}
+$$
+
+We follow exactly the same matrix multiplication rules as before.
+
+Let's calculate every element individually.
+
+**First row:**
+
+For the element in the first row and first column:
+
+$$
+r_{11} =
+\cos\phi \cdot 0
++
+(-\sin\phi) \cdot 0
++
+0 \cdot (-1)
+$$
+
+Therefore:
+
+$$
+r_{11} = 0
+$$
+
+For the element in the first row and second column:
+
+$$
+r_{12} =
+\cos\phi \cdot \sin\theta
++
+(-\sin\phi) \cdot \cos\theta
++
+0 \cdot 0
+$$
+
+Therefore:
+
+$$
+r_{12} =
+\cos\phi\sin\theta
+-
+\sin\phi\cos\theta
+$$
+
+For the element in the first row and third column:
+
+$$
+r_{13} =
+\cos\phi \cdot \cos\theta
++
+(-\sin\phi) \cdot (-\sin\theta)
++
+0 \cdot 0
+$$
+
+Notice that multiplying two negative values produces a positive value.
+
+Therefore:
+
+$$
+r_{13} =
+\cos\phi\cos\theta
++
+\sin\phi\sin\theta
+$$
+
+Our first row is now:
+
+$$
+\begin{bmatrix}
+0 &
+\cos\phi\sin\theta - \sin\phi\cos\theta &
+\cos\phi\cos\theta + \sin\phi\sin\theta
+\end{bmatrix}
+$$
+
+**Second row:**
+
+For the element in the second row and first column:
+
+$$
+r_{21} =
+\sin\phi \cdot 0
++
+\cos\phi \cdot 0
++
+0 \cdot (-1)
+$$
+
+Therefore:
+
+$$
+r_{21} = 0
+$$
+
+For the element in the second row and second column:
+
+$$
+r_{22} =
+\sin\phi \cdot \sin\theta
++
+\cos\phi \cdot \cos\theta
++
+0 \cdot 0
+$$
+
+Therefore:
+
+$$
+r_{22} =
+\sin\phi\sin\theta
++
+\cos\phi\cos\theta
+$$
+
+For the element in the second row and third column:
+
+$$
+r_{23} =
+\sin\phi \cdot \cos\theta
++
+\cos\phi \cdot (-\sin\theta)
++
+0 \cdot 0
+$$
+
+Therefore:
+
+$$
+r_{23} =
+\sin\phi\cos\theta
+-
+\cos\phi\sin\theta
+$$
+
+Our second row is now:
+
+$$
+\begin{bmatrix}
+0 &
+\sin\phi\sin\theta + \cos\phi\cos\theta &
+\sin\phi\cos\theta - \cos\phi\sin\theta
+\end{bmatrix}
+$$
+
+**Third row:**
+
+For the element in the third row and first column:
+
+$$
+r_{31} =
+0 \cdot 0
++
+0 \cdot 0
++
+1 \cdot (-1)
+$$
+
+Therefore:
+
+$$
+r_{31} = -1
+$$
+
+For the element in the third row and second column:
+
+$$
+r_{32} =
+0 \cdot \sin\theta
++
+0 \cdot \cos\theta
++
+1 \cdot 0
+$$
+
+Therefore:
+
+$$
+r_{32} = 0
+$$
+
+For the element in the third row and third column:
+
+$$
+r_{33} =
+0 \cdot \cos\theta
++
+0 \cdot (-\sin\theta)
++
+1 \cdot 0
+$$
+
+Therefore:
+
+$$
+r_{33} = 0
+$$
+
+Our third row is:
+
+$$
+\begin{bmatrix}
+-1 & 0 & 0
+\end{bmatrix}
+$$
+
+Now that we have calculated all nine elements, we can combine them into our final rotation matrix:
+
+$$
+R =
+\begin{bmatrix}
+0 &
+\cos\phi\sin\theta - \sin\phi\cos\theta &
+\cos\phi\cos\theta + \sin\phi\sin\theta \\
+
+0 &
+\sin\phi\sin\theta + \cos\phi\cos\theta &
+\sin\phi\cos\theta - \cos\phi\sin\theta \\
+
+-1 & 0 & 0
+\end{bmatrix}
+$$
+
+At first glance, this matrix might look complicated. However, something interesting happens when we simplify its elements using trigonometric identities.
+
+### Step 3: Simplifying the rotation matrix
+
+Remember the following trigonometric identities:
+
+**Cosine of the difference between two angles:**
+
+$$
+\cos(A-B) = \cos A\cos B + \sin A\sin B
+$$
+
+**Sine of the difference between two angles:**
+
+$$
+\sin(A-B) = \sin A\cos B - \cos A\sin B
+$$
+
+We can use these identities to simplify the four elements in our matrix that contain trigonometric expressions.
+
+Let's examine them one by one.
+
+**First row, second column:**
+
+We currently have:
+
+$$
+r_{12} =
+\cos\phi\sin\theta - \sin\phi\cos\theta
+$$
+
+Since multiplication is commutative for scalar values, we can rearrange the terms:
+
+$$
+r_{12} =
+\sin\theta\cos\phi - \cos\theta\sin\phi
+$$
+
+Compare this with our sine identity:
+
+$$
+\sin(A-B) = \sin A\cos B - \cos A\sin B
+$$
+
+If we substitute:
+
+$$
+A = \theta
+$$
+
+$$
+B = \phi
+$$
+
+We get:
+
+$$
+\sin(\theta-\phi) =
+\sin\theta\cos\phi - \cos\theta\sin\phi
+$$
+
+Therefore:
+
+$$
+\boxed{r_{12} = \sin(\theta-\phi)}
+$$
+
+**First row, third column:**
+
+We currently have:
+
+$$
+r_{13} =
+\cos\phi\cos\theta + \sin\phi\sin\theta
+$$
+
+Rearranging the terms:
+
+$$
+r_{13} =
+\cos\theta\cos\phi + \sin\theta\sin\phi
+$$
+
+Compare this with our cosine identity:
+
+$$
+\cos(A-B) = \cos A\cos B + \sin A\sin B
+$$
+
+Substituting:
+
+$$
+A = \theta
+$$
+
+$$
+B = \phi
+$$
+
+We get:
+
+$$
+\cos(\theta-\phi) =
+\cos\theta\cos\phi + \sin\theta\sin\phi
+$$
+
+Therefore:
+
+$$
+\boxed{r_{13} = \cos(\theta-\phi)}
+$$
+
+**Second row, second column:**
+
+We currently have:
+
+$$
+r_{22} =
+\sin\phi\sin\theta + \cos\phi\cos\theta
+$$
+
+Rearranging the terms:
+
+$$
+r_{22} =
+\cos\theta\cos\phi + \sin\theta\sin\phi
+$$
+
+This is the same expression we just simplified for $r_{13}$.
+
+Therefore:
+
+$$
+\boxed{r_{22} = \cos(\theta-\phi)}
+$$
+
+**Second row, third column:**
+
+We currently have:
+
+$$
+r_{23} =
+\sin\phi\cos\theta - \cos\phi\sin\theta
+$$
+
+Rearranging the terms:
+
+$$
+r_{23} =
+\cos\theta\sin\phi - \sin\theta\cos\phi
+$$
+
+Now compare this with:
+
+$$
+\sin(\theta-\phi) =
+\sin\theta\cos\phi - \cos\theta\sin\phi
+$$
+
+Notice that our expression has the opposite signs.
+
+We can factor out a negative sign:
+
+$$
+r_{23} =
+-\left(
+\sin\theta\cos\phi - \cos\theta\sin\phi
+\right)
+$$
+
+Using our sine identity:
+
+$$
+\boxed{r_{23} = -\sin(\theta-\phi)}
+$$
+
+### Step 4: Constructing the simplified rotation matrix
+
+Now let's return to our original result:
+
+$$
+R =
+\begin{bmatrix}
+0 &
+\cos\phi\sin\theta - \sin\phi\cos\theta &
+\cos\phi\cos\theta + \sin\phi\sin\theta \\
+
+0 &
+\sin\phi\sin\theta + \cos\phi\cos\theta &
+\sin\phi\cos\theta - \cos\phi\sin\theta \\
+
+-1 & 0 & 0
+\end{bmatrix}
+$$
+
+We have just demonstrated that:
+
+$$
+\begin{aligned}
+r_{12} &= \sin(\theta-\phi) \\[6pt]
+r_{13} &= \cos(\theta-\phi) \\[6pt]
+r_{22} &= \cos(\theta-\phi) \\[6pt]
+r_{23} &= -\sin(\theta-\phi)
+\end{aligned}
+$$
+
+Let's substitute these expressions into our rotation matrix.
+
+The result is:
+
+$$
+\boxed{
+R =
+\begin{bmatrix}
+0 & \sin(\theta-\phi) & \cos(\theta-\phi) \\
+0 & \cos(\theta-\phi) & -\sin(\theta-\phi) \\
+-1 & 0 & 0
+\end{bmatrix}
+}
+$$
+
+**Notice something strange?**
+
+Initially, our camera's orientation was represented using three Euler angles:
+
+$$
+R = R(\theta,\psi,\phi)
+$$
+
+But after setting yaw to 90°, our rotation matrix depends only on the difference between pitch and roll:
+
+$$
+\boxed{\theta-\phi}
+$$
+
+In other words, the final rotation matrix no longer depends on pitch and roll independently.
+
+This means that different combinations of pitch and roll can produce exactly the same camera orientation.
+
+And that is precisely the problem we call **gimbal lock**.
+
+**Notice something strange?**
+
+Initially, our camera's orientation was described using three angles:
+
+$$
+R = R(\theta,\psi,\phi)
+$$
+
+But after setting yaw to 90°, our rotation matrix depends only on the difference between pitch and roll:
+
+$$
+\boxed{\theta-\phi}
+$$
+
+This means that pitch and roll no longer independently affect our camera's orientation.
+
+For example, consider these two configurations:
+
+**Configuration 1:**
+
+- Pitch = 30°
+- Yaw = 90°
+- Roll = 10°
+
+**Configuration 2:**
+
+- Pitch = 60°
+- Yaw = 90°
+- Roll = 40°
+
+For the first configuration:
+
+$$
+\theta-\phi = 30^\circ-10^\circ = 20^\circ
+$$
+
+For the second configuration:
+
+$$
+\theta-\phi = 60^\circ-40^\circ = 20^\circ
+$$
+
+Both configurations produce exactly the same rotation matrix!
+
+$$
+\boxed{
+R(30^\circ,90^\circ,10^\circ)
+=
+R(60^\circ,90^\circ,40^\circ)
+}
+$$
+
+Here, the arguments follow the order $(\theta,\psi,\phi)$, corresponding to pitch, yaw, and roll.
+
+**This is gimbal lock!**
+
+When yaw reaches 90°, the effective pitch and roll axes become aligned. Because of this, changing pitch and roll no longer produces two independent rotational effects.
+
+Although we still have three rotation angles, our Euler-angle representation has lost one independent degree of freedom at this orientation.
+
+It is important to understand that the camera itself has not physically lost the ability to rotate. Instead, the problem comes from how we represent its orientation using three sequential Euler rotations.
+
+Also, gimbal lock is not limited to positive 90° rotations. With our chosen rotation order, the same problem occurs when yaw reaches -90°.
+
+More generally, the angle at which gimbal lock occurs depends on the rotation order we choose. Since we are using:
+
+$$
+R = R_z(\phi)R_y(\psi)R_x(\theta)
+$$
+
+the middle rotation is yaw, which is why gimbal lock occurs when yaw reaches $\pm90^\circ$.
+
+This raises an interesting question:
+
+**Can we represent rotations in 3D space without running into this problem?**
+
+Yes! And this is exactly why we are going to introduce **quaternions**.
+
+
+# 5. Framebuffer and Viewport
 
 In the 1.2.3. section I talked a little bit about GLFW window, OpenGL viewport and OpenGL framebuffer. Here I want to spend a little more time explaining the difference between them, because when finding words to explain their differences I found out that I struggle to do so easily. Because the goal of these lessons is to teach you OpenGL and rendering basics in such a way that even a child could understand I decided that a separate section for this topic is necessary.
 
