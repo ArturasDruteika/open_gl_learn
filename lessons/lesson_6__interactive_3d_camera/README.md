@@ -1629,26 +1629,6 @@ $$
 \boxed{\theta-\phi}
 $$
 
-In other words, the final rotation matrix no longer depends on pitch and roll independently.
-
-This means that different combinations of pitch and roll can produce exactly the same camera orientation.
-
-And that is precisely the problem we call **gimbal lock**.
-
-**Notice something strange?**
-
-Initially, our camera's orientation was described using three angles:
-
-$$
-R = R(\theta,\psi,\phi)
-$$
-
-But after setting yaw to 90°, our rotation matrix depends only on the difference between pitch and roll:
-
-$$
-\boxed{\theta-\phi}
-$$
-
 This means that pitch and roll no longer independently affect our camera's orientation.
 
 For example, consider these two configurations:
@@ -1707,11 +1687,43 @@ $$
 
 the middle rotation is yaw, which is why gimbal lock occurs when yaw reaches $\pm90^\circ$.
 
+To understand the gmbal lock better, please watch [this video](https://www.youtube.com/watch?v=BczeMqU_u2Y).
+
 This raises an interesting question:
 
 **Can we represent rotations in 3D space without running into this problem?**
 
 Yes! And this is exactly why we are going to introduce **quaternions**.
+
+
+## 4.3. Introducing Quaternions
+
+First of all, what is a quaternion?
+
+**Quaternion** is a 4 dimensional number system that extends complex numbers by adding 3 imaginary units (**i**, **j**, **k**).
+
+I hope that you do rememeber what a complex number is? It is a number $z$ that has a real part $a$ and an imaginary part $bi$ where $i$ is $\sqrt{-1}$:
+
+$$
+z = a + bi
+$$
+
+If you want to learn about complex numbers, I suggest watch [these videos](https://www.khanacademy.org/math/algebra2/x2ec2f6f830c9fb89:complex) by khan academy.
+
+A quaternion has 3 complex numbers:
+
+$$
+i = \sqrt{-1} \\
+j = \sqrt{-1} \\
+k = \sqrt{-1} \\
+$$
+
+$$
+q = a + bi + cj + dk 
+$$
+
+
+
 
 
 # 5. Framebuffer and Viewport
