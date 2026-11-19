@@ -1710,17 +1710,41 @@ $$
 
 If you want to learn about complex numbers, I suggest watch [these videos](https://www.khanacademy.org/math/algebra2/x2ec2f6f830c9fb89:complex) by khan academy.
 
-A quaternion has 3 complex numbers:
+A quaternion is defines as this:
 
-$$
-i = \sqrt{-1} \\
-j = \sqrt{-1} \\
-k = \sqrt{-1} \\
-$$
-
-$$
+$
 q = a + bi + cj + dk 
-$$
+$
+
+A quaternion has 4 real components and 3 imaginary units:
+
+$
+a \text{ - real part} \\
+b, c, d \text{ - components of the imaginary parts} \\
+i, j, k \text{ - imaginery units} \\
+$
+
+A thing to remember is that a quaternion is not a complex number - it is a 4D version of 1, made of 1 real number and 3 imaginary units
+
+Because quaternions are an extention of complex number, some of the math rules that work for complex numbers apply for quaternions also:
+
+$
+i^2 = j^2 = k^2 = -1 \\
+i^3 = -i \\
+j^3 = -j \\
+k^3 = -k \\
+i^4  = j^4 = k^4 = 1
+$
+
+But what is not true is this:
+
+$
+i \neq j \neq k
+$
+
+
+
+
 
 
 
