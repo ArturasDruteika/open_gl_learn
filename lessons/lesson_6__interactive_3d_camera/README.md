@@ -1712,36 +1712,160 @@ If you want to learn about complex numbers, I suggest watch [these videos](https
 
 A quaternion is defines as this:
 
-$
+$$
 q = a + bi + cj + dk 
-$
+$$
+
+or using a more familiar notation:
+
+$$
+q = w + xi + yj + zk 
+$$
 
 A quaternion has 4 real components and 3 imaginary units:
 
 $
 a \text{ - real part} \\
-b, c, d \text{ - components of the imaginary parts} \\
+b, c, d \text { or } x, y, z \text{ - components of the imaginary parts} \\
 i, j, k \text{ - imaginery units} \\
 $
 
-A thing to remember is that a quaternion is not a complex number - it is a 4D version of 1, made of 1 real number and 3 imaginary units
+A thing to remember is that a quaternion is not a complex number - it is a 4D version made of 1 real number and 3 imaginary units
 
 Because quaternions are an extention of complex number, some of the math rules that work for complex numbers apply for quaternions also:
 
-$
+$$
 i^2 = j^2 = k^2 = -1 \\
 i^3 = -i \\
 j^3 = -j \\
 k^3 = -k \\
 i^4  = j^4 = k^4 = 1
-$
+$$
 
 But what is not true is this:
 
-$
+$$
 i \neq j \neq k
-$
+$$
 
+We will return to why these values are not equal to each other later.
+
+We can also write a quaternion as this:
+
+$$
+q = (w, \vec{v})
+$$
+
+where:
+
+$$
+\vec{v} = (x, y, z)
+$$
+
+This means that we can think of a quaternion as a combination of one scalar and one 3D vector.
+
+Before moving forward, I want to clarify that this notation is not specific to quaternions. We can rewrite any 4D vector using this notation, and the mathematics remains exactly the same.
+
+For example, let's take two 4D vectors:
+
+$$
+\vec{a} = (1,2,3,4)
+$$
+
+$$
+\vec{b} = (5,6,7,8)
+$$
+
+We can rewrite them by separating the first component (scalar) from the remaining three components (3D vector):
+
+$$
+\vec{a} = (1,\vec{u}), \qquad \vec{u} = (2,3,4)
+$$
+
+$$
+\vec{b} = (5,\vec{v}), \qquad \vec{v} = (6,7,8)
+$$
+
+Nothing has changed. Both vectors still contain exactly four numerical components. We have simply grouped the last three components into a 3D vector.
+
+But does this change how mathematical operations work? Let's find out by calculating the dot product using both notations.
+
+**First, using the standard 4D vector notation:**
+
+$$
+\vec{a}\cdot\vec{b}
+=
+1\cdot5+2\cdot6+3\cdot7+4\cdot8
+$$
+
+$$
+=5+12+21+32
+$$
+
+$$
+\boxed{\vec{a}\cdot\vec{b}=70}
+$$
+
+**Now, using our scalar-vector notation:**
+
+Remember that:
+
+$$
+\vec{a}=(1,\vec{u})
+$$
+
+$$
+\vec{b}=(5,\vec{v})
+$$
+
+Since we separated the first component from the remaining three, we can calculate the dot product as:
+
+$$
+\vec{a}\cdot\vec{b}
+=
+1\cdot5+\vec{u}\cdot\vec{v}
+$$
+
+First, calculate the dot product of our two 3D vectors:
+
+$$
+\vec{u}\cdot\vec{v}
+=
+2\cdot6+3\cdot7+4\cdot8
+$$
+
+$$
+=12+21+32=65
+$$
+
+Now substitute this result:
+
+$$
+\vec{a}\cdot\vec{b}=5+65
+$$
+
+$$
+\boxed{\vec{a}\cdot\vec{b}=70}
+$$
+
+**Notice that both notations produce exactly the same result!**
+
+This demonstrates that writing a 4D vector as a combination of a scalar and a 3D vector does not change its mathematical meaning.
+
+In general:
+
+$$
+\boxed{
+(w,x,y,z)\longleftrightarrow(w,\vec{v}),
+\qquad \vec{v}=(x,y,z)
+}
+$$
+
+We are simply choosing a different way to represent the same four components.
+
+This notation will become particularly useful when working with quaternions, because quaternion multiplication can be expressed using the familiar dot product and cross product operations.
+
+Just remember that **quaternion multiplication is a different operation from the ordinary dot product of two 4D vectors**.
 
 
 
