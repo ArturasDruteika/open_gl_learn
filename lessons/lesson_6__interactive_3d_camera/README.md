@@ -26,16 +26,17 @@ At the end of this lesson we will be able to control our camera and view our pyr
 1. [Input Handling](#1-input-handling)
 2. [Yaw, Pitch, Roll](#2-yaw-pitch-roll)
 3. [Mouse Movement Tracking](#3-mouse-movement-tracking)
-   - 3.1. [Input Reading](#31-input-reading)
-   - 3.2. [Input Processing](#32-input-processing)
-     - 3.2.1. [Mouse Input to Camera Rotation](#321-mouse-input-to-camera-rotation)
-     - 3.2.2. [Scroll to Camera Zoom](#322-scroll-to-camera-zoom)
+    - 3.1. [Input Reading](#31-input-reading)
+    - 3.2. [Input Processing](#32-input-processing)
+        - 3.2.1. [Mouse Input to Camera Rotation](#321-mouse-input-to-camera-rotation)
+        - 3.2.2. [Scroll to Camera Zoom](#322-scroll-to-camera-zoom)
 4. [Quaternion Rotations](#4-quaternion-rotations)
-   - 4.1. [Euler Angles](#41-euler-angles)
-   - 4.2. [Gimbal Lock](#42-gimbal-lock)
-   - 4.3. [Introducing Quaternions](#43-introducing-quaternions)
-   - 4.4. [How Quaternions Work](#46-how-quaternions-work)
-   - 4.5. [Quaternions in Our Camera](#45-quaternions-in-our-camera)
+    - 4.0. [Different Vector Notation](#40-different-vector-notation)
+    - 4.1. [Euler Angles](#41-euler-angles)
+    - 4.2. [Gimbal Lock](#42-gimbal-lock)
+    - 4.3. [Introducing Quaternions](#43-introducing-quaternions)
+    - 4.4. [How Quaternions Work](#44-how-quaternions-work)
+    - 4.5. [Quaternions in Our Camera](#45-quaternions-in-our-camera)
 5. [Framebuffer and Viewport](#5-framebuffer-and-viewport)
 
 
@@ -928,9 +929,120 @@ The same exact analogy and processes apply to camera zoom. To sum it up, this gr
 
 # 4. Quaternion Rotations
 
-The last topic I want to touch in this lesson are the quaternions. Before continuing, let me just say that quaternions are the way when dealing with rotations in 3D environment and many 3D engines use them to avoid weird issues, which we are going to discuss later.
+## 4.0. Different Vector Notation
 
-In order to understand what quaternions are, I first suggest to make a little side step, by learning what Euler angles are, because understanding them will allow us unlock the real power of quaternions when dealing with 3D rotations.
+One last thing before learning about quaternions is the different vector notation we are going to use. I want to clarify that this notation is not specific to quaternions. We can rewrite any 4D vector using this notation
+
+$$
+\vec{v}=(w,x,y,z)
+$$
+
+$$
+\boxed{\vec{v}=(w,\vec{u}),\qquad \vec{u}=(x,y,z)}
+$$
+
+And the mathematics remains exactly the same.
+
+For example, let's take two 4D vectors:
+
+$$
+\vec{a} = (1,2,3,4)
+$$
+
+$$
+\vec{b} = (5,6,7,8)
+$$
+
+We can rewrite them by separating the first component (scalar) from the remaining three components (3D vector):
+
+$$
+\vec{a} = (1,\vec{u}), \qquad \vec{u} = (2,3,4)
+$$
+
+$$
+\vec{b} = (5,\vec{v}), \qquad \vec{v} = (6,7,8)
+$$
+
+Nothing has changed. Both vectors still contain exactly four numerical components. We have simply grouped the last three components into a 3D vector.
+
+But does this change how mathematical operations work? Let's find out by calculating the dot product using both notations.
+
+**First, using the standard 4D vector notation:**
+
+$$
+\vec{a}\cdot\vec{b}
+=
+1\cdot5+2\cdot6+3\cdot7+4\cdot8
+$$
+
+$$
+=5+12+21+32
+$$
+
+$$
+\boxed{\vec{a}\cdot\vec{b}=70}
+$$
+
+**Now, using our scalar-vector notation:**
+
+Remember that:
+
+$$
+\vec{a}=(1,\vec{u})
+$$
+
+$$
+\vec{b}=(5,\vec{v})
+$$
+
+Since we separated the first component from the remaining three, we can calculate the dot product as:
+
+$$
+\vec{a}\cdot\vec{b}
+=
+1\cdot5+\vec{u}\cdot\vec{v}
+$$
+
+First, calculate the dot product of our two 3D vectors:
+
+$$
+\vec{u}\cdot\vec{v}
+=
+2\cdot6+3\cdot7+4\cdot8
+$$
+
+$$
+=12+21+32=65
+$$
+
+Now substitute this result:
+
+$$
+\vec{a}\cdot\vec{b}=5+65
+$$
+
+$$
+\boxed{\vec{a}\cdot\vec{b}=70}
+$$
+
+**Notice that both notations produce exactly the same result!**
+
+This demonstrates that writing a 4D vector as a combination of a scalar and a 3D vector does not change its mathematical meaning.
+
+In general:
+
+$$
+\boxed{
+(w,x,y,z)\longleftrightarrow(w,\vec{v}),
+\qquad \vec{v}=(x,y,z)
+}
+$$
+
+We are simply choosing a different way to represent the same four components.
+
+This notation will become particularly useful when working with quaternions, because quaternion multiplication can be expressed using the familiar dot product and cross product operations.
+
+In order to understand what quaternions are, first, I suggest to make a little side step, by learning what Euler angles are, because understanding them will allow us unlock the real power of quaternions when dealing with 3D rotations.
 
 ## 4.1. Euler Angles
 
@@ -1750,7 +1862,9 @@ $$
 
 We will return to why these values are not equal to each other later.
 
-We can also write a quaternion as this:
+Also, what is not true is that a quaternion is a vector. **Even though a quaternion has vector components, it is incorrect to think of it as a vector itself**. A quaternion does not have a direction.
+
+In the [4.0. section](#40-different-vector-notation) we learned how to rewrite a vector using a different notation. This is exactly where it becomes very useful, because we can also write a quaternion as this:
 
 $$
 q = (w, \vec{v})
@@ -1764,110 +1878,260 @@ $$
 
 This means that we can think of a quaternion as a combination of one scalar and one 3D vector.
 
-Before moving forward, I want to clarify that this notation is not specific to quaternions. We can rewrite any 4D vector using this notation, and the mathematics remains exactly the same.
-
-For example, let's take two 4D vectors:
-
-$$
-\vec{a} = (1,2,3,4)
-$$
-
-$$
-\vec{b} = (5,6,7,8)
-$$
-
-We can rewrite them by separating the first component (scalar) from the remaining three components (3D vector):
-
-$$
-\vec{a} = (1,\vec{u}), \qquad \vec{u} = (2,3,4)
-$$
-
-$$
-\vec{b} = (5,\vec{v}), \qquad \vec{v} = (6,7,8)
-$$
-
-Nothing has changed. Both vectors still contain exactly four numerical components. We have simply grouped the last three components into a 3D vector.
-
-But does this change how mathematical operations work? Let's find out by calculating the dot product using both notations.
-
-**First, using the standard 4D vector notation:**
-
-$$
-\vec{a}\cdot\vec{b}
-=
-1\cdot5+2\cdot6+3\cdot7+4\cdot8
-$$
-
-$$
-=5+12+21+32
-$$
-
-$$
-\boxed{\vec{a}\cdot\vec{b}=70}
-$$
-
-**Now, using our scalar-vector notation:**
-
-Remember that:
-
-$$
-\vec{a}=(1,\vec{u})
-$$
-
-$$
-\vec{b}=(5,\vec{v})
-$$
-
-Since we separated the first component from the remaining three, we can calculate the dot product as:
-
-$$
-\vec{a}\cdot\vec{b}
-=
-1\cdot5+\vec{u}\cdot\vec{v}
-$$
-
-First, calculate the dot product of our two 3D vectors:
-
-$$
-\vec{u}\cdot\vec{v}
-=
-2\cdot6+3\cdot7+4\cdot8
-$$
-
-$$
-=12+21+32=65
-$$
-
-Now substitute this result:
-
-$$
-\vec{a}\cdot\vec{b}=5+65
-$$
-
-$$
-\boxed{\vec{a}\cdot\vec{b}=70}
-$$
-
-**Notice that both notations produce exactly the same result!**
-
-This demonstrates that writing a 4D vector as a combination of a scalar and a 3D vector does not change its mathematical meaning.
-
-In general:
-
-$$
-\boxed{
-(w,x,y,z)\longleftrightarrow(w,\vec{v}),
-\qquad \vec{v}=(x,y,z)
-}
-$$
-
-We are simply choosing a different way to represent the same four components.
-
-This notation will become particularly useful when working with quaternions, because quaternion multiplication can be expressed using the familiar dot product and cross product operations.
+### 4.3.1. Quaternion Multiplication
 
 Just remember that **quaternion multiplication is a different operation from the ordinary dot product of two 4D vectors**.
 
+Because of this, quaternions follow these special multiplication rules:
 
+$$
+ij = k,\qquad jk = i,\qquad ki = j
+$$
+
+But reversing their order changes the sign:
+
+$$
+ji = -k,\qquad kj = -i,\qquad ik = -j
+$$
+
+This means quaternion multiplication is **not commutative in general**:
+
+$$
+\boxed{q_1q_2 \neq q_2q_1}
+$$
+
+### Why does $ij = k$?
+
+First, we need to understand that the three imaginary quaternion units represent three independent directions in 3D space:
+
+$$
+i = (1,0,0)
+$$
+
+$$
+j = (0,1,0)
+$$
+
+$$
+k = (0,0,1)
+$$
+
+These are the standard basis vectors of the imaginary part of quaternion space.
+
+In 3D vector mathematics, we have an operation called the **cross product**.
+
+For two vectors $\mathbf{a}$ and $\mathbf{b}$, their cross product produces a vector perpendicular to both.
+
+For the standard basis vectors:
+
+$$
+\mathbf{e}_x \times \mathbf{e}_y = \mathbf{e}_z
+$$
+
+$$
+\mathbf{e}_y \times \mathbf{e}_z = \mathbf{e}_x
+$$
+
+$$
+\mathbf{e}_z \times \mathbf{e}_x = \mathbf{e}_y
+$$
+
+These relationships follow the **right-hand rule**.
+
+Now, quaternion multiplication of two pure imaginary quaternions can be expressed using the dot product and cross product:
+
+$$
+\boxed{uv = -u\cdot v + u\times v}
+$$
+
+Here, $u$ and $v$ are interpreted as 3D vectors, the dot product produces the scalar part, and the cross product produces the imaginary part.
+
+Let's calculate $ij$.
+
+Since $i$ and $j$ represent perpendicular directions, their dot product is zero:
+
+$$
+i\cdot j = 0
+$$
+
+Their cross product is:
+
+$$
+i\times j = k
+$$
+
+Therefore:
+
+$$
+ij = -i\cdot j + i\times j
+$$
+
+Substituting:
+
+$$
+ij = -0 + k
+$$
+
+Which gives:
+
+$$
+\boxed{ij = k}
+$$
+
+The same reasoning applies to the other two products:
+
+$$
+jk = -j\cdot k + j\times k
+$$
+
+Since the dot product is zero and the cross product gives $i$:
+
+$$
+\boxed{jk = i}
+$$
+
+Similarly:
+
+$$
+ki = -k\cdot i + k\times i
+$$
+
+Therefore:
+
+$$
+\boxed{ki = j}
+$$
+
+**Important:** This is a geometric explanation of the quaternion multiplication rules, not an independent proof of why the rules must exist.
+
+The identity
+
+$$
+uv = -u\cdot v + u\times v
+$$
+
+is itself a consequence of the standard definition of quaternion multiplication.
+
+In other words, mathematicians define quaternion multiplication so that these relationships hold. The connection to the cross product helps us understand their geometric meaning.
+
+### 4.3.2. Proving that $ji = -k$
+
+We already know:
+
+$$
+ij = k
+$$
+
+Multiply both sides by $i$ on the left:
+
+$$
+i(ij) = ik
+$$
+
+Using associativity:
+
+$$
+(i^2)j = ik
+$$
+
+Since $i^2 = -1$:
+
+$$
+-j = ik
+$$
+
+Therefore:
+
+$$
+\boxed{ik = -j}
+$$
+
+Now multiply $ik = -j$ by $i$ on the right:
+
+$$
+(ik)i = -ji
+$$
+
+Using associativity:
+
+$$
+i(ki) = -ji
+$$
+
+Since $ki = j$:
+
+$$
+ij = -ji
+$$
+
+And because $ij = k$:
+
+$$
+\boxed{ji = -k}
+$$
+
+The exact same logic applies to the other two equations:
+
+$$
+kj = -i,\qquad ik = -j
+$$
+
+### Why does reversing the order change the sign?
+
+We can also understand this geometrically.
+
+Remember that the cross product is **anticommutative**:
+
+$$
+\boxed{u\times v = -(v\times u)}
+$$
+
+For example:
+
+$$
+i\times j = k
+$$
+
+But:
+
+$$
+j\times i = -k
+$$
+
+Since the quaternion imaginary units are perpendicular, their dot products are zero.
+
+Therefore:
+
+$$
+ij = -i\cdot j + i\times j = k
+$$
+
+While:
+
+$$
+ji = -j\cdot i + j\times i = -k
+$$
+
+This explains geometrically why reversing the multiplication order changes the sign.
+
+### Summary
+
+The fundamental quaternion multiplication identities are:
+
+$$
+\boxed{
+\begin{aligned}
+i^2 &= j^2 = k^2 = -1\\
+ij &= k,\qquad ji = -k\\
+jk &= i,\qquad kj = -i\\
+ki &= j,\qquad ik = -j
+\end{aligned}
+}
+$$
+
+These rules define how the quaternion imaginary units interact.
+
+The key things to remember are:
 
 
 
