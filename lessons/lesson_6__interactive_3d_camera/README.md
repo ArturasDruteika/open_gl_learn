@@ -2134,6 +2134,57 @@ These rules define how the quaternion imaginary units interact.
 The key things to remember are:
 
 
+### Why $i \neq j \neq k$?
+
+Even though this is true:
+
+$$
+i^2 = j^2 = k^2 = -1 \\
+$$
+
+we cannot say that each of them are equal in the same way that if:
+
+$$
+x^2 = 4 \\
+y^2 = 4 \\
+$$ 
+
+then automatically:
+
+$$
+x \neq y
+$$
+
+because there can be more than a single path that leads to the same answer:
+
+$$
+\begin{aligned}
+    &x = 2 \\
+    &y = -2
+\end{aligned}
+$$
+
+A kind of similar logic applies to the quaternions as well.
+
+Each imaginary unit represents a different basis direction (vector) in the imaginary part of the quaternion space:
+
+$$
+\begin{aligned}
+    i &= (0,1,0,0)\\
+    j &= (0,0,1,0)\\
+    k &= (0,0,0,1)
+\end{aligned}
+$$
+
+If we only take the immaginary part, then these 3 axes look exactly the same as the basis vectors of our known 3D world:
+
+$$
+\begin{aligned}
+    i &= (1,0,0) \qquad &\vec{x} &= (1,0,0)\\
+    j &= (0,1,0) \qquad &\vec{y} &= (0,1,0)\\
+    k &= (0,0,1) \qquad &\vec{z} &= (0,0,1)
+\end{aligned}
+$$
 
 
 
