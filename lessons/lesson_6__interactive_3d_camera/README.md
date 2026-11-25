@@ -2076,7 +2076,7 @@ $$
 kj = -i,\qquad ik = -j
 $$
 
-### Why does reversing the order change the sign?
+### 4.3.3 Why does reversing the order change the sign?
 
 We can also understand this geometrically.
 
@@ -2114,27 +2114,8 @@ $$
 
 This explains geometrically why reversing the multiplication order changes the sign.
 
-### Summary
 
-The fundamental quaternion multiplication identities are:
-
-$$
-\boxed{
-\begin{aligned}
-i^2 &= j^2 = k^2 = -1\\
-ij &= k,\qquad ji = -k\\
-jk &= i,\qquad kj = -i\\
-ki &= j,\qquad ik = -j
-\end{aligned}
-}
-$$
-
-These rules define how the quaternion imaginary units interact.
-
-The key things to remember are:
-
-
-### Why $i \neq j \neq k$?
+### 4.3.4. Why $i \neq j \neq k$?
 
 Even though this is true:
 
@@ -2186,6 +2167,123 @@ $$
 \end{aligned}
 $$
 
+We can also prove that the imaginary units cannot be equal using the quaternion multiplication rules.
+
+We already know that:
+
+$$
+ij = k
+$$
+
+and:
+
+$$
+ji = -k
+$$
+
+Now, let's assume that:
+
+$$
+i = j
+$$
+
+If this were true, then:
+
+$$
+ij = ii = i^2 = -1
+$$
+
+Similarly:
+
+$$
+ji = ii = i^2 = -1
+$$
+
+This would mean that:
+
+$$
+ij = ji
+$$
+
+However, according to the quaternion multiplication rules:
+
+$$
+ij = k,\qquad ji = -k
+$$
+
+Therefore:
+
+$$
+k = -k
+$$
+
+Adding $k$ to both sides:
+
+$$
+2k = 0
+$$
+
+Dividing both sides by $2$:
+
+$$
+k = 0
+$$
+
+But we already know that:
+
+$$
+k^2 = -1
+$$
+
+Substituting $k = 0$ would give us:
+
+$$
+0^2 = -1
+$$
+
+Which means:
+
+$$
+0 = -1
+$$
+
+This is a **contradiction**. Therefore, our original assumption that $i = j$ must be false:
+
+$$
+\boxed{i \neq j}
+$$
+
+The exact same reasoning can be applied to the other imaginary units, giving us:
+
+$$
+\boxed{i \neq j,\qquad j \neq k,\qquad k \neq i}
+$$
+
+Therefore, even though all three imaginary units satisfy:
+
+$$
+i^2 = j^2 = k^2 = -1
+$$
+
+They are three distinct imaginary units and cannot be equal to one another.
+
+
+### 4.3.5. Summary
+
+The fundamental quaternion multiplication identities are:
+
+$$
+\boxed{
+\begin{aligned}
+i^2 &= j^2 = k^2 = -1\\
+ij &= k,\qquad ji = -k\\
+jk &= i,\qquad kj = -i\\
+ki &= j,\qquad ik = -j
+\end{aligned}
+}
+$$
+
+These rules define how the quaternion imaginary units interact.
 
 
 
