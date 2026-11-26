@@ -35,9 +35,13 @@ At the end of this lesson we will be able to control our camera and view our pyr
     - 4.1. [Euler Angles](#41-euler-angles)
     - 4.2. [Gimbal Lock](#42-gimbal-lock)
     - 4.3. [Introducing Quaternions](#43-introducing-quaternions)
-    - 4.4. [How Quaternions Work](#44-how-quaternions-work)
-    - 4.5. [Quaternions in Our Camera](#45-quaternions-in-our-camera)
-5. [Framebuffer and Viewport](#5-framebuffer-and-viewport)
+        - 4.3.1. [Quaternion Multiplication](#431-quaternion-multiplication)
+        - 4.3.2. [Proving that $ji = -k$](#432-proving-that-ji---k)
+        - 4.3.3. [Why does reversing the order change the sign?](#433-why-does-reversing-the-order-change-the-sign)
+        - 4.3.4. [Why $i \neq j \neq k$?](#434-why-i-neq-j-neq-k)
+        - 4.3.5. [Summary](#435-summary)
+5. [Quaternions in Our Camera](#5-quaternions-in-our-camera)
+6. [Framebuffer and Viewport](#6-framebuffer-and-viewport)
 
 
 # 0. Project Structure
@@ -1900,7 +1904,7 @@ $$
 \boxed{q_1q_2 \neq q_2q_1}
 $$
 
-### Why does $ij = k$?
+### 4.3.1. Why does $ij = k$?
 
 First, we need to understand that the three imaginary quaternion units represent three independent directions in 3D space:
 
@@ -2013,6 +2017,7 @@ $$
 is itself a consequence of the standard definition of quaternion multiplication.
 
 In other words, mathematicians define quaternion multiplication so that these relationships hold. The connection to the cross product helps us understand their geometric meaning.
+
 
 ### 4.3.2. Proving that $ji = -k$
 
@@ -2286,8 +2291,14 @@ $$
 These rules define how the quaternion imaginary units interact.
 
 
+# 5. Quaternions in Our Camera
 
-# 5. Framebuffer and Viewport
+Perfect, now we have a basic knowledge about quaternions. Our next step is to learn how to intergrate them in our camera rotation so that we could evade the Gimbal Lock problem.
+
+
+
+
+# 6. Framebuffer and Viewport
 
 In the 1.2.3. section I talked a little bit about GLFW window, OpenGL viewport and OpenGL framebuffer. Here I want to spend a little more time explaining the difference between them, because when finding words to explain their differences I found out that I struggle to do so easily. Because the goal of these lessons is to teach you OpenGL and rendering basics in such a way that even a child could understand I decided that a separate section for this topic is necessary.
 
