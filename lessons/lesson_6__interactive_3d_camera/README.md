@@ -22,15 +22,7 @@ At the end of this lesson we will be able to control our camera and view our pyr
 
 # Contents
 
-0. [Project Structure](#0-project-structure)
-1. [Input Handling](#1-input-handling)
-2. [Yaw, Pitch, Roll](#2-yaw-pitch-roll)
-3. [Mouse Movement Tracking](#3-mouse-movement-tracking)
-    - 3.1. [Input Reading](#31-input-reading)
-    - 3.2. [Input Processing](#32-input-processing)
-        - 3.2.1. [Mouse Input to Camera Rotation](#321-mouse-input-to-camera-rotation)
-        - 3.2.2. [Scroll to Camera Zoom](#322-scroll-to-camera-zoom)
-4. [Quaternion Rotations](#4-quaternion-rotations)
+4. [Quaternions](#4-quaternions)
     - 4.0. [Different Vector Notation](#40-different-vector-notation)
     - 4.1. [Euler Angles](#41-euler-angles)
     - 4.2. [Gimbal Lock](#42-gimbal-lock)
@@ -40,7 +32,21 @@ At the end of this lesson we will be able to control our camera and view our pyr
         - 4.3.3. [Why does reversing the order change the sign?](#433-why-does-reversing-the-order-change-the-sign)
         - 4.3.4. [Why $i \neq j \neq k$?](#434-why-i-neq-j-neq-k)
         - 4.3.5. [Summary](#435-summary)
+    - 4.4. [Quaternion Magnitude](#44-quaternion-magnitude)
+    - 4.5. [Unit Quaternions and Normalization](#45-unit-quaternions-and-normalization)
+    - 4.6. [Quaternion Conjugate](#46-quaternion-conjugate)
+    - 4.7. [Quaternion Inverse](#47-quaternion-inverse)
 5. [Quaternions in Our Camera](#5-quaternions-in-our-camera)
+    - 5.1. [Axis-Angle Representation](#51-axis-angle-representation)
+    - 5.2. [Representing a 3D Vector as a Quaternion](#52-representing-a-3d-vector-as-a-quaternion)
+    - 5.3. [Constructing a Rotation Quaternion](#53-constructing-a-rotation-quaternion)
+    - 5.4. [Rotating a Vector Using a Quaternion](#54-rotating-a-vector-using-a-quaternion)
+        - 5.4.1. [Why Do We Use Half-Angles?](#541-why-do-we-use-half-angles)
+    - 5.5. [Combining Quaternion Rotations](#55-combining-quaternion-rotations)
+    - 5.6. [World Space vs. Local Space Rotations](#56-world-space-vs-local-space-rotations)
+    - 5.7. [Implementing Camera Rotations](#57-implementing-camera-rotations)
+    - 5.8. [Calculating Camera Position](#58-calculating-camera-position)
+    - 5.9. [Constructing the View Matrix](#59-constructing-the-view-matrix)
 6. [Framebuffer and Viewport](#6-framebuffer-and-viewport)
 
 
@@ -2289,6 +2295,59 @@ ki &= j,\qquad ik = -j
 $$
 
 These rules define how the quaternion imaginary units interact.
+
+
+## 4.4. Quaternion Magnitude
+
+Remember that when working with ordinary 3D vectors, we can calculate their magnitude (length) using the following formula:
+
+$$
+|\vec{v}|=\sqrt{x^2+y^2+z^2}
+$$
+
+Similarly, since a quaternion contains four numerical components, we can calculate its magnitude using the same principle.
+
+Given a quaternion:
+
+$$
+q=w+xi+yj+zk
+$$
+
+Its magnitude is defined as:
+
+$$
+\boxed{|q|=\sqrt{w^2+x^2+y^2+z^2}}
+$$
+
+For example, let's take the following quaternion:
+
+$$
+q=(1,2,3,4)
+$$
+
+Its magnitude would be:
+
+$$
+|q|=\sqrt{1^2+2^2+3^2+4^2}
+$$
+
+$$
+|q|=\sqrt{1+4+9+16}
+$$
+
+$$
+\boxed{|q|=\sqrt{30}\approx5.477}
+$$
+
+Simple enough, but why do we need to know the magnitude of a quaternion when all we want to do is rotate our camera?
+
+The reason is that when representing 3D rotations in our camera, we want to work with quaternions that have a magnitude equal to one:
+
+$$
+\boxed{|q|=1}
+$$
+
+Such quaternions are called unit quaternions.
 
 
 # 5. Quaternions in Our Camera
